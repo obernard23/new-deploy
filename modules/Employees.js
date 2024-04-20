@@ -115,7 +115,9 @@ Sales_Target:{
   default:0
 },
 Target_Start:String,
-Notification:[]
+Notification:[],
+Appraisal:[],
+Leave:[],
 })
 
 const  EMPLOYEES = mongoose.model(' EMPLOYEES',EmployeSchema);

@@ -1,6 +1,9 @@
 const customer = require("../modules/customers");
 const CustomerReport = require("../modules/customerReport");
-
+const client = require("twilio")(
+  "AC68902380266ee09dbbbf6238728f930d",
+  "dbc59d53cbcf4f3cc1b98ff648d82293"
+);
 const Lead = require("../modules/Leads");
 const Product = require("../modules/Product");
 const Vendor = require("../modules/Vendors");
@@ -18,6 +21,7 @@ const NotifyStoreKeeper = require("../Functions/NotifyStoreKeeper");
 const NotifyCFOPO = require("../Functions/NotifyCFOPO");
 const NotifyStoreKeeperPO = require("../Functions/NotifyStoreKeeperPO");
 const NotifyInvoicerPODeclined = require("../Functions/NotifyInvoicerPODeclined");
+const AppraisalNotify = require("../Functions/AppraisalNotification");
 const PurchaseOrder = require("../modules/purchaseOrder");
 const Expense = require("../modules/Expense");
 const NotifyCFO = require("../Functions/NotifyCFO");
@@ -156,7 +160,6 @@ module.exports.signup_get = (req, res) => {
 
 module.exports.signin_get = async (req, res) => {
   const employee = await Employe.find();
-
   if (employee.length < 1) {
     await Employe.create({
       firstName: "Developer",
@@ -178,7 +181,7 @@ module.exports.signin_get = async (req, res) => {
       }
     });
   }
-  res.render("SignIn", { title: "Ecommerce", name: "BADE", responseDate });
+  res.render("SignIn", { title: "Log-In", name: "BADE", responseDate });
 };
 
 module.exports.cart_get = (req, res) => {
@@ -224,7 +227,7 @@ module.exports.logout_get = async (req, res) => {
   person.lastSeen = moment().format("l");
   person.save();
   res.cookie("jwt", "", { maxAge: 1 });
-  res.redirect("/api/v1/SignIn");
+  res.redirect("/");
 };
 
 // register new employee
@@ -711,16 +714,6 @@ module.exports.warehouse_get = async (req, res, next) => {
 
 //post request for warehouse
 module.exports.wareHouse_post = async (req, res) => {
-  // const products = await storeProduct.find({WHIDS:'65718fab7633d59d8a2ea76c'})
-  // .then(async(products) => {
-  //   products.forEach( async product => {
-  //     await storeProduct.deleteOne( { _id : product._id } ).then(acknowledged=> console.log(acknowledged))
-
-  //   })
-  // })
-
-  // console.log(products)
-
   try {
     await WHouse.create(req.body).then(async (result) => {
       if (result) {
@@ -779,60 +772,61 @@ module.exports.warehouseDelivery_get = async (req, res, next) => {
     await WHouse.findOne({ _id: ObjectId(req.params.id) })
       .limit(1)
       .then(async (item) => {
-        await bills
-          .find({ whId:  ObjectId(item._id) })
-          .then(async (bill) => {
-            
-             const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+        await bills.find({ whId: ObjectId(item._id) }).then(async (bill) => {
+          const page = parseInt(req.query.page);
+          const limit = parseInt(req.query.limit);
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const results = {};
-    results.DeliveredBill =  await bills.find({ whId: ObjectId(item._id), })
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(startIndex)
-      .exec()
-      .then((bills)=>{
-        if(req.query.category === 'all'){
-          return bills
-        }else{
-          return bills.filter((bill) => {
-            return bill.billStatus.toLowerCase() === req.query.category.toLowerCase()
-          })
-        }
-      })
-
-    if (endIndex < (await bills.find().countDocuments().exec())) {
-      results.next = {
-        page: page + 1,
-        limit: limit,
-      };
-    }
-
-    if (startIndex > 0) {
-      results.Previous = {
-        page: page - 1,
-        limit: limit,
-      };
-    }
-
-    results.currentPage = req.query.page;
-    results.currentCat = req.query.category;
-          
-    let Bills = await bill.filter((bill) => {
-      return (
-        bill.isDelivered === false && bill.billStatus !== "Cancelled"
-      );
-    });
-            res.status(200).render("warehouseops", {
-              result: item,
-              Bills,
-              results,
-              name: "BADE",
+          const startIndex = (page - 1) * limit;
+          const endIndex = page * limit;
+          const results = {};
+          results.DeliveredBill = await bills
+            .find({ whId: ObjectId(item._id) })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .skip(startIndex)
+            .exec()
+            .then((bills) => {
+              if (req.query.category === "all") {
+                return bills;
+              } else {
+                return bills.filter((bill) => {
+                  return (
+                    bill.billStatus.toLowerCase() ===
+                    req.query.category.toLowerCase()
+                  );
+                });
+              }
             });
+
+          if (endIndex < (await bills.find().countDocuments().exec())) {
+            results.next = {
+              page: page + 1,
+              limit: limit,
+            };
+          }
+
+          if (startIndex > 0) {
+            results.Previous = {
+              page: page - 1,
+              limit: limit,
+            };
+          }
+
+          results.currentPage = req.query.page;
+          results.currentCat = req.query.category;
+
+          let Bills = await bill.filter((bill) => {
+            return (
+              bill.isDelivered === false && bill.billStatus !== "Cancelled"
+            );
           });
+          res.status(200).render("warehouseops", {
+            result: item,
+            Bills,
+            results,
+            name: "BADE",
+          });
+        });
       });
   }
 };
@@ -1089,196 +1083,44 @@ module.exports.WareHouseBill_post = async (req, res, next) => {
     await customer
       .findById(new ObjectId(req.body.customer))
       .then(async (customer) => {
-        if (customer.category === "Pay as Go") {
-          //workflow for  pay as go customer
-          await bills.create(req.body).then(async (data) => {
-            NotifyAccountant(data); //send notification to Accountant here
-            //remove product from warehouse
-            data.orders.forEach(async (order) => {
-              await storeProduct
-                .find({ WHIDS: new ObjectId(data.whId) })
-                .then(async (products) => {
-                  // filterproducts that are in warehouse to get product to deduct from
-                  todeduct = products
-                    .filter((prud) => {
-                      return (
-                        prud.productId.toString() === order.item._id.toString()
-                      );
-                    })
-                    .map((currentQty) => {
-                      return currentQty.currentQty;
-                    });
-                  // check for carton and remove
-                  if (order.scale === "Carton") {
-                    // deduct cartorn
-                    await storeProduct.updateOne(
-                      { _id: order.storeProductId },
-                      { $set: { currentQty: todeduct - order.Qty } }
-                    );
-                    // product sales count
-                    await Product.findById(order.item._id).then(
-                      (productSold) => {
-                        currentTotalSale = productSold.TotalSale;
-                        productSold.TotalSale = currentTotalSale + order.Qty;
-                        productSold.save();
-                      }
-                    );
-                  } else if (order.scale === "Roll") {
-                    //deduct and action carton removal and rolls
-                    const RemoveRolls = async (order) => {
-                      const rollProduct = await storeProduct.findById(
-                        order.storeProductId
-                      );
-                      const defaultRolls = await Product.findById(
-                        rollProduct.productId
-                      );
-                      if (order.Qty > rollProduct.Rolls) {
-                        await storeProduct
-                          .findById(order.storeProductId)
-                          .then((product) => {
-                            product.currentQty = product.currentQty - 1;
-                            product.Rolls = product.Rolls + defaultRolls.Rolls;
-                            product.Rolls = product.Rolls - order.Qty;
-                            product.save();
-                          });
-                      } else {
-                        await storeProduct
-                          .findById(order.storeProductId)
-                          .then((product) => {
-                            product.Rolls = product.Rolls - order.Qty;
-                            product.save();
-                          });
-                      }
-                    };
-                    RemoveRolls(order);
-                  }
-                });
-            });
-            res.status(200).json({
-              message:
-                "New Bill successfully Registered. Inventory adjusted, product has been removed from warehouse and accountant has been notified.",
-            });
-          });
-        } else if (customer.category === "Credit-Customer") {
-          // console.log(req.body)
+      if (customer.category === "Credit-Customer") {
           await Customer.findById(req.body.customer).then(async (customer) => {
             previousDebt = customer.Debt;
-            newDebt = previousDebt + req.body.subTotal;
+            newDebt = previousDebt + req.body.grandTotal;
             if (newDebt > customer.creditLimit) {
               throw new Error("Customer Bill has exceeded credit Limit ");
             } else {
-              await bills.create(req.body).then(async (data) => {
-                const wh = await WHouse.findById(new ObjectId(data.whId));
-                //remove product from warehouse
-                data.orders.forEach(async (order) => {
-                  await storeProduct
-                    .find({ WHIDS: new ObjectId(data.whId) })
-                    .then(async (products) => {
-                      // filterproducts that are in warehouse to get product to deduct from
-                      todeduct = products
-                        .filter((prud) => {
-                          return (
-                            prud.productId.toString() ===
-                            order.item._id.toString()
-                          );
-                        })
-                        .map((currentQty) => {
-                          return currentQty.currentQty;
-                        });
-                      // check for carton and remove
-                      if (order.scale === "Carton") {
-                        // deduct cartorn
-                        await storeProduct.updateOne(
-                          { _id: order.storeProductId },
-                          { $set: { currentQty: todeduct - order.Qty } }
-                        );
-                        // product sales count
-                        await Product.findById(order.item._id).then(
-                          (productSold) => {
-                            currentTotalSale = productSold.TotalSale;
-                            productSold.TotalSale =
-                              currentTotalSale + order.Qty;
-                            productSold.save();
-                          }
-                        );
-                      } else if (order.scale === "Roll") {
-                        //deduct and action carton removal and rolls
-                        const RemoveRolls = async (order) => {
-                          const rollProduct = await storeProduct.findById(
-                            order.storeProductId
-                          );
-                          const defaultRolls = await Product.findById(
-                            rollProduct.productId
-                          );
-                          if (order.Qty > rollProduct.Rolls) {
-                            await storeProduct
-                              .findById(order.storeProductId)
-                              .then((product) => {
-                                product.currentQty = product.currentQty - 1;
-                                product.Rolls =
-                                  product.Rolls + defaultRolls.Rolls;
-                                product.Rolls = product.Rolls - order.Qty;
-                                product.save();
-                              });
-                          } else {
-                            await storeProduct
-                              .findById(order.storeProductId)
-                              .then((product) => {
-                                product.Rolls = product.Rolls - order.Qty;
-                                product.save();
-                              });
-                          }
-                        };
-                        RemoveRolls(order);
-                      }
-                    });
+                previousDebt = customer.Debt;
+                newDebt = parseInt(previousDebt) + parseInt(req.body.grandTotal);
+
+
+                // capture debt days here
+                if (newDebt > 0) {
+                  await Customer.updateOne({_id: customer._id}, 
+                    { $set: { lastPayDate : moment().format("l") }})
+                  
+                }
+
+                await Customer.updateOne({_id: customer._id}, 
+                { $set: { Debt:newDebt }})
+                .then(async(acknowledged)=>{
+                  if(acknowledged){
+                     //generate report for customer
+                await CustomerReport.create({
+                  ReferenceNo: `INV${req.body.billReferenceNo}`,
+                  DebitAmount: req.body.grandTotal,
+                  Date: req.body.startDate,
+                  customerId: req.body.customer,
+                  Balance: newDebt,
+                  dr: true,
+                  CreditAmount: 0,
+                  cr: false,
                 });
-
-                await Customer.findById(data.customer)
-                  //check debt satatus
-                  .then(async (customer) => {
-                    previousDebt = customer.Debt;
-                    newDebt = previousDebt + data.grandTotal;
-
-                    //generate report for customer
-                    await CustomerReport.create({
-                      ReferenceNo: `INV${req.body.billReferenceNo}`,
-                      DebitAmount: req.body.grandTotal,
-                      Date: req.body.startDate,
-                      customerId: req.body.customer,
-                      Balance: newDebt,
-                      dr: true,
-                      CreditAmount: 0,
-                      cr: false,
-                    });
-
-                    if (newDebt > customer.creditLimit) {
-                      res.status(404).json({
-                        message: "Customer Bill has exceeded credit Status ",
-                      });
-                    } else {
-                      previousDebt = customer.Debt;
-                      newDebt = previousDebt + data.grandTotal;
-                      customer.Debt = newDebt;
-
-                      const d = new Date();
-                      data.status = "Approved";
-                      data.save();
-                    }
-
-                    // capture debt days here
-                    if (newDebt > 0) {
-                      customer.lastPayDate = moment().format("l");
-                    }
-                    customer.save();
-                  });
-
-                NotifyStoreKeeper(data); //send notification to store keeper here
-                // sendMail(data,wh);
-                res.status(200).json({
-                  message: `New Bill successfully Registered. Inventory adjusted, product has been removed from warehouse.`,
-                });
-              });
+                next();
+                  }else{
+                    throw new Error("something went wrong");
+                  }
+                })
             }
           });
         } else {
@@ -1965,19 +1807,67 @@ module.exports.WareHouseManager_get = async (req, res) => {
 };
 
 module.exports.Appraisal_post = async (req, res) => {
-  await Appraisals.create(req.body).then(() => {
-    res.status(200).json({ message: "Appraisal Submited Successfully" });
-  });
+  try {
+    await Appraisals.create(req.body).then((data) => {
+      if(data) {
+        AppraisalNotify(data)
+        res.status(200).json({ message: "Appraisal Submited Successfully" });
+      }
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
   res.end();
 };
 
 module.exports.AppraisalsManagement_get = async (req, res) => {
-  //from dashboard
-  const Appraisal = await Appraisals.find();
-  const Employee = await Employe.find();
-  res
-    .status(200)
-    .render("AppraisalsManagement", { Appraisal, Employee, name: "BADE" });
+  if (ObjectId.isValid(req.params.id)) {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const results = {};
+    results.Appraisal = await Appraisals.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(startIndex)
+      .exec()
+      .then((bills) => {
+        if (req.query.category === "all") {
+          return bills;
+        } else {
+          return bills.filter((bill) => {
+            return (
+              bill.status.toLowerCase() === req.query.category.toLowerCase()
+            );
+          });
+        }
+      });
+
+    if (endIndex < (await bills.find().countDocuments().exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.Previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+    results.Employee = await Employe.find();
+    results.currentPage = req.query.page;
+    results.currentCat = req.query.category;
+
+    res.status(200).render("AppraisalsManagement", {
+      results,
+      name: "BADE",
+    });
+  }
 };
 
 //for expense controller
@@ -2409,7 +2299,14 @@ module.exports.PurchaseOrder_get = async (req, res, next) => {
 
     const vendor = await Vendor.find();
     const searchAllPurchase = await PurchaseOrder.find();
-    res.status(200).render("PurchaseOrder", { name: "BADE", result, vendor,searchAllPurchase });
+    res
+      .status(200)
+      .render("PurchaseOrder", {
+        name: "BADE",
+        result,
+        vendor,
+        searchAllPurchase,
+      });
   } catch (e) {
     res.status(404);
   }
@@ -3376,52 +3273,67 @@ module.exports.deleteProductCategory = async (req, res) => {
 };
 
 // product BuyingPrice_change
-module.exports.BuyingPrice_change = async (req,res,next)=>{
+module.exports.BuyingPrice_change = async (req, res, next) => {
   try {
     await Product.findById(req.params.id).then(async (products) => {
       if (products) {
-        products.HistoricalPrice.push({
-          date:responseDate,
-          Newprice: req.body.updatedBuyingPrice,
-          diffrence:req.body.updatedBuyingPrice - products.vendor_Price ,
-          oldPrice:products.vendor_Price
-        })
-        products.vendor_Price = req.body.updatedBuyingPrice;
-        products.save()
-        await storeProduct.find({productId: ObjectId(products._id) })
-        .then((inventoryItem)=>{
+        await storeProduct
+          .find({ productId: ObjectId(products._id) })
+          .then(async (inventoryItem) => {
+            const Carton = inventoryItem
+              .map((item) => {
+                return item.currentQty;
+              })
+              .reduce((total, currentValue) => {
+                diff = parseInt(
+                  req.body.updatedBuyingPrice - products.vendor_Price
+                );
+                return total + currentValue * diff;
+              }, 0);
 
-          const Carton  = inventoryItem.map((item)=>{
-            return item.currentQty;
-          }).reduce((total, currentValue) => {
-            diff = parseInt(req.body.updatedBuyingPrice - products.vendor_Price)
-            return  total + currentValue * diff;
-          },0);
 
-          const rolls  = inventoryItem.map((item)=>{
-            return item.Rolls
-          }).reduce((total, currentValue) => {
-            return (total + currentValue) * req.body.updatedBuyingPrice - products.vendor_Price ;
-          },0);
+            const rolls = inventoryItem
+              .map((item) => {
+                return item.Rolls;
+              })
+              .reduce((total, currentValue) => {
+                diff =
+                  parseInt(
+                    req.body.updatedBuyingPrice - products.vendor_Price
+                  ) / products.Rolls;
+                return total + currentValue * diff;
+              }, 0);
 
-          console.log(Carton);
-        })
-        // // create pnl product reevaluation price
-        // await HistoricalpriceChange.create({
-        //   productId:products._id,
-        //   date:responseDate,
-        //   Newprice: req.body.updatedBuyingPrice,
-        //   diffrence:req.body.updatedBuyingPrice - products.vendor_Price ,
-        //   oldPrice:products.vendor_Price
-        // })
-        // next()//send mail to notify cfo of price change
-        res.status(200).json({message:`Buying price of ${products.Name} has been updated Successfully`})
-        }
+            products.HistoricalPrice.push({
+              date: responseDate,
+              Newprice: req.body.updatedBuyingPrice,
+              diffrence: req.body.updatedBuyingPrice - products.vendor_Price,
+              oldPrice: products.vendor_Price,
+              overallPriceChange: Carton + rolls,
+            });
+
+            // create pnl product revaluation price
+            await HistoricalpriceChange.create({
+              productId: products._id,
+              date: responseDate,
+              Newprice: req.body.updatedBuyingPrice,
+              diffrence: req.body.updatedBuyingPrice - products.vendor_Price,
+              oldPrice: products.vendor_Price,
+              overallPriceChange: Carton + rolls,
+            });
+
+            products.vendor_Price = req.body.updatedBuyingPrice;
+            products.save();
+          });
+
+        next(); //send mail to notify cfo of price change
+      }
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: error.message });
   }
-}
+};
 
 //get all product in excel format
 module.exports.ExcelProduct_get = async (req, res) => {
@@ -3429,17 +3341,23 @@ module.exports.ExcelProduct_get = async (req, res) => {
 
   const workSheetColumnsNames = [
     "_id",
-    "SKU Name",
-    "PRODUCT CODE",
+    "SKU_Name",
+    "PRODUCT_CODE",
     "CATEGORY",
-    "TOTAL QTY SOLD",
-    "VAN PRICE",
-    "SUPER MARKET PRICE",
-    "WAREHOUSE PRICE",
-    "ROLL IN CARTON",
-    "SOLD IN WARE HOUSE",
-    "SOLD ON ECOMMERCE",
+    "VAT",
+   " TOTAL_QTY_SOLD",
+    "VAN_PRICE",
+    "SUPER_MARKET_PRICE",
+    "WAREHOUSE_PRICE",
+    "ROLL_IN_CARTON",
+   " PIECIES_IN_ROLL",
+    "SOLD_IN_WARE_HOUSE",
+    "SOLD_ON_ECOMMERCE",
+    "VAN_PROMO",
+    "WAREHOUSE_PROMO",
+    "SUPER_MARKET_PROMO",
     "VENDOR",
+    "Photo",
   ];
   const Products = await Product.find();
   let vendor = await Vendor.find();
@@ -3457,14 +3375,20 @@ module.exports.ExcelProduct_get = async (req, res) => {
       data.Name,
       data.ACDcode,
       data.category,
+      data.VAT,
       data.TotalSale,
       data.Van_Price,
       data.Market_Price,
       data.WareHouse_Price,
       data.Rolls,
+      data.Pieces,
       data.Sellable,
       data.Ecom_sale,
+      data.VanPromo,
+      data.WholesalePromo,
+      data.MarketPromo,
       ven[0],
+      data.image,
     ];
   });
 

@@ -40,8 +40,6 @@ module.exports.SingleAsset = async (req, res) => {
         .then(async (asset) => {
           const Employees = await Employe.find();
           if (asset) {
-            // asset.AcivityLog = [];
-            // asset.save();
             res
               .status(200)
               .render("./AssetViews/SingleAsset", { asset, Employees,name: "BADE" });
@@ -49,6 +47,25 @@ module.exports.SingleAsset = async (req, res) => {
             throw new Error("Could find this asset");
           }
         });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  } else {
+    res.redirect("/api/v1/404");
+  }
+};
+
+
+// patch for edit on asset 
+module.exports.Asset_Patch = async (req, res) => {
+  if (ObjectId.isValid(req.params.AssetId)) {
+    try {
+      await Assets.updateOne(
+        { _id: ObjectId(req.params.AssetId) },
+        { $set: req.body }
+      ).then((acknowledged)=>{
+        acknowledged ? res.status(200).json({message:'Asset updated Successfully'}) : res.status(500).json({error:'Error updating'})
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -117,11 +134,4 @@ module.exports.VAT_REPORT = async (req, res, next) => {
 };
 
 // for task management
-module.exports.Settings = async (req, res, next) => {
- try{
-  const Employees = await Employe.find();
-  res.status(200).render("Settings",{Employees,name:'BADE'} )
- }catch(error){
-  res.status(500).json({ error: error.message });
- }
-};
+module.exports.taskManager = async (req, res, next) => {};

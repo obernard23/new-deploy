@@ -65,7 +65,7 @@ const AssetSchema = new  mongoose.Schema({
     description:String,
     status:{ type:String,
         default:'Runing',},
-})
+},{timestamps:true})
 
 const  ASSETS = mongoose.model(' Asset',AssetSchema);
 

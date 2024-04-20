@@ -6,8 +6,8 @@ const Bills = require('../modules/Bills');
 
 
 // this function sends mail to ware house manager 
-const NotifyAccountant = async (data) => {
-   const bill =  await Bills.findById(data.id)//find bill 
+const NotifyAccountant = async (req,res,next) => {
+   const bill =  await Bills.findOne({billReferenceNo:req.body.billReferenceNo}).limit(1)//find bill 
    let date = new Date()
    await Employee.find({jobTittle:'Accountant'})
     .then((Accontant) => {
@@ -36,14 +36,14 @@ const NotifyAccountant = async (data) => {
             let response = {
                 body: {
                 name : `Accountant ${person.firstName}`,
-                intro: `New Bill Payment for REF ${data.billReferenceNo} to review`,
+                intro: `New Sales order Raised for ${req.body.customerName}  with REF NO ${req.body.billReferenceNo}/${req.body.invoicelocation}`,
                 action: [
                     {
-                        instructions: `Total Amount to collect / Register:  ₦${data.grandTotal}K. Also ensure to upload proof of payment`,
+                        instructions: ``,
                         button: {
                             color: '#22BC66',
-                            text: `Acknowledge Payment for bill ${data.billReferenceNo}`,
-                            link: `${url}/api/v1/Register/bill/${person._id}/${data._id}`
+                            text: `ORDER/${req.body.billReferenceNo}/${req.body.invoicelocation}`,
+                            link: `${url}/api/v1/bill/${bill._id}`
                         }
                     }
                 ]
@@ -61,9 +61,13 @@ const NotifyAccountant = async (data) => {
             }
             
             transporter.sendMail(message).then(() => {
-                console.log("you should receive an email")
+                res.status(200).json({
+                    message: `New Bill successfully Registered. Inventory adjusted, product has been removed from warehouse.`,
+                  });
             }).catch(error => {
-                console.log( error )
+                res.status(500).json({
+                    message:`New Bill successfully Registered. Inventory adjusted, product has been removed from warehouse.`,
+                  });
             })
         });
     })

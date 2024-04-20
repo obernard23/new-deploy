@@ -171,7 +171,8 @@ td:nth-child(4){
 
     <div class=" p-2 ">
 
-        <div class="card bg-dark text-gray justify-content-between" style="color: #ffffff !important;">
+        <div class="card p-2 bg-dark text-gray justify-content-between" style="color: #ffffff !important;">
+          <p>Select Period </p>
             <form id="dataForm">
                 
               <div class="card-body d-flex justify-content-between align-items-center">
@@ -190,35 +191,109 @@ td:nth-child(4){
                 <button class="btn btn-success p-2"><img width="14" height="14" src="https://img.icons8.com/material-outlined/24/search--v1.png" alt="search--v1"/></button>
               </div>
               </form>
+              <!-- Accordion for variosu component -->
+              <div class="accordion" id="accordionExample">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                      STOCK VALUE 
+                    </button>
+                  </h2>
+                  <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <div class="accordion accordion-flush" id="accordionFlushExample">
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                            PROFIT FROM  SALES
+                            </button>
+                          </h2>
+                          <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">
+                             <!-- TABLE FOR PROFIT -->
+                             <table  class="w-100 bg-light ">
+                              <thead>
+                                  <td class="border p-1 ">S/N</td>
+                                  <td  class="border p-1">Batch</td>
+                                  <td  class="border p-1">Channel</td>
+                                  <td  class="border p-1">SKU</td>
+                                  <td  class="border p-1" title="Buying Price">BP</td>
+                                  <td  class="border p-1" >Inv No</td>
+                                  <td  class="border p-1" title="Invoice date">Date</td>
+                                  <td  class="border p-1" title="WareHouse invoice Number">WH No:</td>
+                                  <td  class="border p-1" title="Product category">category</td>
+                                  <td  class="border p-1" title="Van Margin">Scale</td>
+                                  <td  class="border p-1" title="Super Markert Price">SM-P</td>
+                                  <td  class="border p-1" title="Super Markert Qty">SM-Q</td>
+                                  <td  class="border p-1" title="Super Markert Gain">SM-G</td>
+                                  <td  class="border p-1" title="whole sale Price">WH-P</td>
+                                  <td  class="border p-1" title="whole sale Quantity">WH-Q</td>
+                                  <td  class="border p-1" title="whole sale Gain">WH-G</td>
+                                  <td  class="border p-1" title="Van Price">V-P</td>
+                                  <td  class="border p-1" title="Van Qty">V-Q</td>
+                                  <td  class="border p-1" title="Van Gain">V-G</td>
+                                   <td  class="border p-1" title="Total Qty Sold">TQS</td>
+                                  <td  class="border p-1" title="Total Profit">TP</td> 
+                              </thead>
+                              <tbody id="pnl"></tbody>
+                          </table> 
+                             <!-- ENDS HERE -->
+                            </div>
+                          </div>
+                        </div>
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                              LOCAL PURCHASE ORDERS
+                            </button>
+                          </h2>
+                          <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the second item's accordion body. Let's imagine this being filled with some actual content.</div>
+                          </div>
+                        </div>
+                        <div class="accordion-item">
+                          <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                              PRICE CHANGE GAIN
+                            </button>
+                          </h2>
+                          <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">Placeholder content for this accordion, which is intended to demonstrate the <code>.accordion-flush</code> class. This is the third item's accordion body. Nothing more exciting happening here in terms of content, but just filling up the space to make it look, at least at first glance, a bit more representative of how this would look in a real-world application.</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      OPERATIONAL EXPENSES
+                    </button>
+                  </h2>
+                  <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <strong>This is the second item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      Accordion Item #3
+                    </button>
+                  </h2>
+                  <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <strong>This is the third item's accordion body.</strong> It is hidden by default, until the collapse plugin adds the appropriate classes that we use to style each element. These classes control the overall appearance, as well as the showing and hiding via CSS transitions. You can modify any of this with custom CSS or overriding our default variables. It's also worth noting that just about any HTML can go within the <code>.accordion-body</code>, though the transition does limit overflow.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- ends here -->
             </div>
             <hr>
-            <!-- display from here -->
-            <table  class="w-100 bg-light ">
-                <thead>
-                    <td class="border p-1 ">S/N</td>
-                    <td  class="border p-1">Batch</td>
-                    <td  class="border p-1">Channel</td>
-                    <td  class="border p-1">SKU</td>
-                    <td  class="border p-1" title="Buying Price">BP</td>
-                    <td  class="border p-1" >Inv No</td>
-                    <td  class="border p-1" title="Invoice date">Date</td>
-                    <td  class="border p-1" title="WareHouse invoice Number">WH No:</td>
-                    <td  class="border p-1" title="Product category">category</td>
-                    <td  class="border p-1" title="Van Margin">Scale</td>
-                    <td  class="border p-1" title="Super Markert Price">SM-P</td>
-                    <td  class="border p-1" title="Super Markert Qty">SM-Q</td>
-                    <td  class="border p-1" title="Super Markert Gain">SM-G</td>
-                    <td  class="border p-1" title="whole sale Price">WH-P</td>
-                    <td  class="border p-1" title="whole sale Quantity">WH-Q</td>
-                    <td  class="border p-1" title="whole sale Gain">WH-G</td>
-                    <td  class="border p-1" title="Van Price">V-P</td>
-                    <td  class="border p-1" title="Van Qty">V-Q</td>
-                    <td  class="border p-1" title="Van Gain">V-G</td>
-                    <!-- <td  class="border p-1" title="Total Qty Sold">TQS</td>
-                    <td  class="border p-1" title="Total Profit">TP</td> -->
-                </thead>
-                <tbody id="pnl"></tbody>
-            </table>
+           
 
     </div>
     

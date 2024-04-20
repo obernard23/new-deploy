@@ -263,6 +263,16 @@ p {
     <%}%>
     <%if(user.role === "Admin" ||user.jobTittle === "CFO" || user.jobTittle === "Invoicer"){%>
 
+      <a class="card1 shadow-sm"  href="/api/v1/VirtualstorageProduct">
+        <h6>PRODUCTS</h6>
+        <p class="small">Manage Product,Create product category,Register Product to ware house...</p>
+        <div class="container">
+          <div class="folder">
+            <div class="folder-inside"></div>
+          </div>
+        </div>
+      </a>
+
       <a class="card1 shadow-sm" href="/api/v1/VIRTUAL/Purchase/<%=user._id%>">
         <h6>PROCUREMENT</h6>
         <p class="small">Manage all your business Procurement Process in one place.</p>

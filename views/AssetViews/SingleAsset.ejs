@@ -37,7 +37,7 @@
             <!-- image upload div -->
                 <input type="file" hidden id="files" name='image' multiple />
         </div>
-    <form action=""  method="post" id='AssetForm' class="p-2 ">
+    <form action=""  method="post" data-id="<%=asset._id%>" id='AssetForm' class="p-2 ">
         <input type="text" placeholder="Asset Name" name="Name" value="<%=asset.Name%>" id="Name" style="width:570px;padding:10px;font-size: x-large;" required/>
         <div class="d-flex  gap-3 p-5 justify-content-around">
             <!-- cateory -->
@@ -242,10 +242,11 @@
 
 const AssetForm = document.getElementById('AssetForm')
 AssetForm.addEventListener('submit', async (e)=>{
-        try {
+    try {
+            const id = AssetForm.dataset.id
             e.preventDefault();
 
-                const request = await fetch('/api/v1/Asset/edit',{
+                const request = await fetch(`/api/v1/assets/${id}/edit`,{
                         method:"PATCH",
                         body: JSON.stringify({
                             Name:AssetForm.Name.value,
@@ -269,6 +270,9 @@ AssetForm.addEventListener('submit', async (e)=>{
                         }),
                         headers:{'Content-Type': 'application/json'}
                 })
+                const response = await request.json();
+                alert(response.message || response.error)
+                response.message ? location.reload() : "" 
         } catch (error) {
             alert(error.message)
         }

@@ -1,125 +1,521 @@
-<!-- '/VirtualstorageProduct' -->
 <!DOCTYPE html>
 <html lang="en">
     <%-include('./partials/head.ejs')%>
-    <%-include('./partials/inactive.ejs')%>
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
+   
+    <style>
+      @media screen and (max-width: 480px) {
+        .WHNav {
+          display: none !important;
+        }
+      }
+        .position-relative:hover{
+            background-color: rgba(169, 169, 169, 0.568);
+            color:rgb(216, 175, 42)
+        }
+        .position-relative{
+            color:black
+        }
 
-    <link rel="stylesheet" href="/icomoon/style.css">
+tbody tr:hover{
+background-color :#ffcc66c9;
+border:2px solid red;
+font-size: 0.8rem !important;
+font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+cursor: grabbing;
+transition-delay:1s;
+}
 
-    <link rel="stylesheet" href="/owl.carousel.min.css">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/bootstrap.min.css">
-    
-    <!-- Style -->
-    <link rel="stylesheet" href="/style.css">
+
+        /* activitiy modal */
+
+        .sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+}
+
+.sidenav p {
+  padding: 8px 8px 8px 32px;
+  text-decoration: none;
+  font-size: 15px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidenav p:hover {
+  color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+
+#pspdfkit-header {
+  transition: margin-left .5s;
+  padding: 16px;
+}
+
+@media screen and (max-height: 450px) {
+  .sidenav {padding-top: 15px;}
+  .sidenav p {font-size: 18px;}
+}
+
+
+      /* ends here  */
+
+
+
+
+
+    </style>
 <body>
-    <nav  class="navbar bg-black">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/" title="Apps">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAVe0lEQVR4nO1de3RV1Zk/tgvrtJ2RP8bprM60IsvV6XLVtnbWaisCQwyvICbyCCEhEAR5PxIgPJIAImgFCiZIeQQiiKAJqOEhQoJIKC81g4EEEwQDBsiTJDd370todWa6Z/1Ozrl3n3PPPo97TwLVu9f6FneFc863v+/be397f68tSZEWaZEWaZEWaZEWaZEWaZEWaZEWaW60lpaWf/L5fAmU0jcppR8TQmoJIV9TStsopZcJIYWEkHltbW0PhYOHMfYdr9c7gFK6hhBySsFzWwH8Pkkp/aPP5+uPZ8PB5fV6exJC0gkhe0EDaA
-                FNwAMaKaW7fD7fKNAu3S3t9u3bP6GUbieEfEUpZVZACPkbIeRDSmlvJ3gYY9+DQAkhN+zgUXBdJ4TMYYzd6wQXpbQPIaQEfbWJ56+U0tfa29v/XbpTjTH2XULIckLIX+wyyICQ/La2tu52GEQpvRIqHkpptZ0BgL4QQgrCoAezdBl4I3Vl83g891NKD4fBIB6u+ny+X4hwEULmEkL+J1w8+AYhJE2Ex+fzPYq+uEGTx+Mp6rJlDMIghFxwSRgqs276fL5f6nFRSpe4iUeBLD2eW7du/YoQ0uwmnsbGxktXrly5v1OFASVJKX1P1Inr1+rZzteL2Oxp69iIpxez/n3msGeGZLLnxq1im9bvZZWfXTETSsOtW7f+VcXl9XqTRM96vV5WfPhj9sLibWxM/HI2KGqeDEnxy9kLS7axI0
-                WfMK+XmOEap+Lx+Xz/oihpw2crL1SzjesLZRpAC2gCbaBx144iduN6vRBPdXV1aXx8/D90mkCgM4wQt7V52ZaN+9jgqHTW7/HZQoh6IpUtX7qd1dU2iogoAh5K6c8ppe1Gz5w6eZ6lJL5kigcwPukP7PTJchGeW4SQnym4jhg9U3ujUe4r+myGBzRv2bRf5oHRd44ePbpLkqRurgujvb3934yY1NBwk6VOX2fJIB4Shj0vjzwBs4ZTSg8Z/d9bO4vZk0+k2cYT3TuNvbXziAjPQUrpSKP/++xCtdxHJzSlzXhV5oX+Wx6P5+sRI0aMkiTpHlcFgq2t0czQCyNm4FI2buIONiP9EEvNOsZmLihmz07NZ3FPv6x5bmTsEnatps6IUS1GTNr37p+1zO4zjyUkbmRTUvex2RkfyjBl9j6WkLRR/
-                j/+2f2FJ0RCCcJVU1Mn9y3wfiqLi31ZpgG0gCbQNm7CDjZk4NIgoRjNlDNnzpRIkvSo24o86JyRu2FfoEO9Ulni2C0sbXEJS1t83BAmTCtgT3LMAgGi9ZdycOnzGjag71z/e0/FvMBmLigS4gHj8Iz6/MD/mscuX6qxhSttRmCAoa/oswhPalYJS0zOlWlX38HyFTxw277u2bNniiRJ33dFIF6vN9FIgfM6o0MYxy3huRl7WBRHwInjZZZMWpKxNTADByyRZ4MVHjyDZ9X3lmbkWeL5c0lZQN/1SmMTZ7xtiyZZKJxOMVL0OTk56yRJ+p0rAoGJQI9g5/bDGiZhtNjpPGBkfGAUZi3YYsqkutpGWReoyweWJbt4pqTt949e6B4oajNcGfMDjB0Z/6ptPFgVYgYFli/svvTfLi0tPSlJUoIrC
-                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" width="30" height="30">
-              </a>
-              <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-              
-                  <p class="breadcrumb-item " aria-current="page" style="color: #fff !important;">Appraisal</p>
-               
-             
-              </ul>
-        </div>
-      </nav>
-      
-      <div class="p-3">
-          <h2 >Apraisal List</h2>
-          <div class="table-responsive custom-table-responsive" >
-    
-            <table class="table custom-table" style="font-size: 15px !important;">
-              <thead>
-                <tr>  
-    
-                  <th scope="col">
-                    <label class="control control--checkbox">
-                      <input type="checkbox"  class="js-check-all"/>
-                      <div class="control__indicator"></div>
-                    </label>
-                  </th>
-                  
-                  <th scope="col">ACTIVITY LOG</th>
-                  <th scope="col">PERIOD</th>
-                  <th scope="col">EMPLOYEE</th>
-                  <th scope="col">DATE</th>
-                  <th scope="col">EMPL...PHOTO</th>
-                </tr>
-              </thead>
-              <tbody>
-                <%if(Appraisal.length > 0){%> <%Appraisal.forEach((Appraisal)=>{%>
-                  <tr scope="row">
-                    <th scope="row">
-                      <label class="control control--checkbox">
-                        <input type="checkbox"/>
-                        <div class="control__indicator"></div>
-                      </label>
-                    </th>
-                    <td>
-                      <!-- activity log -->
-                        <div class=" " scope="col">
-                    <!-- Split dropstart button -->
-                  <div class="btn-group dropstart" style="border-right: 1px dotted rgb(190, 190, 190) !important;" role="group">
-                  <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="visually-hidden">Toggle Dropstart</span>
-                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAAsTAAALEwEAmpwYAAADR0lEQVR4nJ2Vy08TURjF51/Qlf+CS/CFUp6FtrSdvqctbYc+gBYfVJDHQlQkIeIbwfCIC0KCMYrR6MZEKSpEHoIkujAECxsgUCQpAlNYuDjmXqBhBAbKJN9mJvf73Xu+c88wFr6Qs3n8EZvXD85dBK6gEGbeB5PLC4PTA4PDDZ2dB2vjlzUOxxEm0cfmDUQmwmGsr6/vWmtra7RuNzZDwzn8CQPyfYF4o1gstmf1fPwMNefoTRhg9/opQKp5LBZDNLpE5Pqr5rhjCQFsewCqrteh+kad6F39vYdQme1QmWxQGK3I0XOQ6yzIZk3I0pqQoTEgQ61HmkoHmYKdlSlYLWP1FIsAvxcX0dT6BPr8AjrcxpZ2+o586+3rp2BBECQrEongQ+8npCo0MyLAysoKKq/VovBmO4rbhsDd7YW+9A6C1TX029LSEswuL6ZnZiUB8/PzmJqawrlcDRhizS3Al8FhOMvrUNM9Dr5tDLamEZgaeqD1VaJ/YIguvvWgCd2v3x4IcDZHDYb4fgtwvryK+p7Iw9p5aG0uYk2oLQ54LwTp4r6BQQSrrx4OsFcJ2xYvLy/D6PJArjPT4WZqjHS46Xkbw7W6i+KAlJw8MJYEAYIg0Ev39MXLfU9wRp4HhsSCFEDYpcHA8AgCZZWSgMnJSZzOVokBgcsVO7RXbfreXXIp3oA4yuTybMij1lN5ZEoWqUotiCIiAAm1vU4gNcj7j1vQ0fVM+gRZSjBGp+dQgK+jY3CXlEoCTmUpwBi2AYqDV6C1Oqk8eZZ8Ko/SuBELBYGLoiarq6tUDhoLRB6Fll4sM+/dCdgtSfeLA0EQ8Ki1He0dnTvAW4CTmQTgcO8AHKS5IAgY+/4Ddl9A1Hw74ERGLhidnZ//OT5xKMAqkYn3UXnIrSUXy+T0iAEazmlkra653axJtM81SETypvbPX72J7377CZLTc5DQvyNdbTiut/MIhXoQCoVQW9+AQFkFotGoCDA3N7cJkCcGYAhEpR/t7OpCc2sbddGvcBgLCwvxIv8CEhPhcBhJaYcAyFRsqd3np7d95NsYbUZ2+3+9e9+DJFn2dMKAFIXiqEzJ/iGxQHxPhktCjcQC8T2xJtE+OV0+nSSTq/4BNITUZwFW2l8AAAAASUVORK5CYII="
-                    width="20"height="20" >
-                  </button>
-                  <ul class="dropdown-menu ">
-                    <!-- Dropdown menu links -->
-                    <span>History Logs</span>
-                  </ul>
-                  <!--ends here  -->
-                    </td>
-                    <td>
-                   <h6><%=Appraisal.title%></h6>
-                    </td>
-                    <td>
-                         <!-- product name -->
-                  <%pname = Employee.filter(name=>{%>
-                    <% return name._id.toString() === Appraisal.Employe.toString()%>
-                    <%})%>
-                     <%pname.map(n=>{%>
-                       <a href="/Product/<%=n._id%>/<%=n.Name%>" class="form-label"><%=n.firstName.toUpperCase()%> <%=n.lastName.toUpperCase()%></a>
-                     <%})%>
-                    <!-- ends here -->
-                    </td>
-                    <td>
-                         <P><%=Appraisal.date%></P>
-                    </td>
-                    <td>
-                               <!-- product scale -->
-                      <%pname = Employee.filter(name=>{%>
-                      <% return name._id.toString() === Appraisal.Employe.toString()%>
-                      <%})%>
-                      <%pname.map(n=>{%>
-                         <img width="50" height="50" src='https://cdn.pixabay.com/photo/2019/08/11/18/59/icon-4399701_640.png' alt="photo here" >
-                     <%})%>
-                    </td>
-                  </tr>
-                  <tr class="spacer"><td colspan="100"></td></tr>
-                  <%})%> 
-                  <%}else{%>
-                    <p>Nothin to display</p>
-                <%}%>
+   <!-- add breadcrum here -->
+   <nav class="navbar bg-black">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
+            <img src="data:image/png;base64,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" width="30" height="30">
+          </a>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item dropdown">
 
-              </tbody>
-            </table>
-          </div>
-    
+                <h5 class="text-light">
+                    Staff Appraisal Portal
+                </h5>
+                
+                
+              </li>
+        </ul>
+        <%-include('./partials/USER.ejs')%>
+    </div>
+  </nav>
+  
+
+ 
+   
+
+  <div class="d-flex justify-content-between p-2 m-1 bg-success-subtle ">
+               
+
+        <!-- ends here -->
+               
+               <div class="">
+                <button class="btn btn-dark" onclick="location.assign('/api/v1/employee')">Start New Appraisal</button>
+               </div>
+               <span onclick="location.assign('/api/v1/employee')" title="Export Table to Xlsx">
+                <img height="40" width="40" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB90lEQVR4nGNgGAWjYBSMgiEJxCYEZ4hNCP4oNjHkP6lY81A96fhg3Uetg3Xp1PQAWY4n2wOHwPgD9TxApuMp9MD/UQ/AwGgMHBpNQsM0CXEXWhRwF1p84Smy+E8RLrH8L9TsMSAe+EKx42G42OI/T4MrBpZck0o2ZiAEqOZ4GB71QOpoDPwXLrP9f+f1o/8gULVpEjx5aLUE/v/x+9f/b79+/NdpDR7cSShiXhnYA2++vP8vUekEFlt5didYrGHr9KGRB3ZdPw52cOO2Gf8te2L///339//tVw/BMTQkPGDSGfn/15/f/99/+/T/2L0L///9+/ffa1r20CqFphxc8R8Glp/ZPvSK0YUnNsE9sOLsDoIeEHfXwsBC04LIxgyUeMBzahY42Zx6cPn/kbvnwZ7wn5k/NDwgXGb7/8aL+2BHg9K9/YQksGcevn32X6zCcfB7oHvPArDjd1w7ChfbdOkAWKx378LB7QGzrihw6QMqNq174+Dihh1h/3///QPGVr2xg9cDPBTgUQ9MG2kxwF1k/plqHigwHwAPFJrnUcUTBeb/hKL0v4m7a75Hx6oZDmRjBmoBCQ+t/+Ri9TR7sjHDqAegYDQG0kaT0EhPQu5aH+nvATvqTXBIemilSXhofaCfB+w+qKbYp1LNA6NgFIyCUcBADQAA6UC2Ipn+q/gAAAAASUVORK5CYII=">
+              </span>
+              
+              </div>
+              <div class="d-flex justify-content-between p-2 m-1 shadow-sm">
+
+             
+                
+              <div class="d-flex col-md-9 justify-content-between">
+              <form class="d-flex  col-md-5 shadow" id="search">
+                <input class="form-control " type="search" placeholder="Search with KPI reference or Employee Name" aria-label="Search" name="query">
+                <button  class="input-group-text" type="submit"> <img width="24" height="24" src="https://img.icons8.com/material-outlined/24/search--v1.png" alt="search--v1"/></button>
+              </form>
+
+              <%if(results.Appraisal.length > 0){%>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="category"
+                      id="all"
+                      value="all"
+                      <%if(results.currentCat === 'all'){%>
+                        checked="checked"
+                      <%}%>
+                      onchange="location.assign(`/api/v1/Appraisals/Management/<%=user._id%>?page=<%=results.currentPage%>&limit=15&category=${this.value}`)"
+                    />
+                    <label class="form-check-label" for="all">ALL</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="category"
+                      id="Order"
+                      value="Pending"
+                      <%if(results.currentCat === 'Pending'){%>
+                        checked="checked"
+                      <%}%>
+                      onchange="location.assign(`/api/v1/Appraisals/Management/<%=user._id%>?page=<%=results.currentPage%>&limit=15&category=${this.value}`)"
+                    />
+                    <label class="form-check-label" for="Order">Pending</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="category"
+                      value="Completed"
+                      id="Invoice"
+                      <%if(results.currentCat === 'Completed'){%>
+                        checked="checked"
+                      <%}%>
+                      onchange="location.assign(`/api/v1/Appraisals/Management/<%=user._id%>?page=<%=results.currentPage%>&limit=15&category=${this.value}`)"
+                    />
+                    <label class="form-check-label" for="Invoice">Completed</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="category"
+                      value="Cancelled"
+                      id="Cancelled"
+                      <%if(results.currentCat === 'Cancelled'){%>
+                        checked="checked"
+                      <%}%>
+                      onchange="location.assign(`/api/v1/Appraisals/Management/<%=user._id%>?page=<%=results.currentPage%>&limit=15&category=${this.value}`)"
+                    />
+                    <label class="form-check-label" for="Cancelled">Cancelled</label>
+                  </div>
+                </div>
+              <%}%>
+              </div>
+           <div class="h-59 p-1 d-flex"  style="overflow-y: hidden ;">
+                
+                <%if(results.Appraisal.length > 0){%>
+                  <table class="border w-100">
+                    <thead class="border">
+                      <td class="border"><b>REF NO</b></td>
+                      <td class="border"><b>STAFF</b></td>
+                      <td class="border"><b>KPI PERSPECTIVE </b></td>
+                      <td class="border"><b>START DATE</b></td>
+                      <td class="'border"><b>Status</b></td>
+                    </thead>
+                    <tbody id="" >
+                    <%results.Appraisal.sort((a,b)=>{return b.createdAt - a.createdAt}).forEach((Delivery)=>{%>
+                      <tr title="<%=Delivery.title.toUpperCase()%>" class="shadow-sm">
+                        <td class="border"><a 
+                          <%if(Delivery.billStatus === 'Cancelled'){%>
+                            class="text-danger"
+                           <%}%>"
+                          href="/api/v1/bill/<%=Delivery._id%>"><%=Delivery.title%></a></td>
+                        <td class="border">
+                          <%if(results.Employee){%>
+                            <%locations = results.Employee.filter((Warehouse)=>{%>
+                              <%return Warehouse._id.toString() === Delivery.Employe.toString() %>
+                            <%})%>
+                            <%locations.map(location=>{%>
+                             <b> <%=location.firstName%> <%=location.lastName%> </b>
+                            <%})%>
+                            <%}else{%>
+                              
+                            <%}%> 
+                        </td>
+                        <td class="border flex-wrap "><%Delivery.kpi.forEach(kpi=>{%>
+                          <span class=" shadow rounded text-* bg-danger-subtle p-1 flex-wrap" title="<%=kpi.Objectives%>"><%=kpi.Perspective%></span>
+                        <%})%></td>
+                        <td class="border"><%=Delivery.kpi.length%> kpi set</td>
+                        <td class="border p-1 text-center"><p class=" shadow rounded text-light 
+                          <%if(Delivery.status === 'Started'){%>
+                            bg-danger
+                           <%}else if(Delivery.status.toLowerCase() === 'completed'.toLowerCase()){%>
+                            bg-success
+                           <%}else{%>
+                            bg-secondary
+                           <%}%>
+                          "><%=Delivery.status.toUpperCase()%></p></td>
+                      </tr>
+                    
+                  </tbody>
+                  <%})%>
+                </table>
+                <%}else{%>
+                  <p>Nothing to show</p>
+                  <%}%>
+                </div>
+              <footer class="d-flex justify-content-center">
+                <button class="btn me-2 btn-dark"  <%if(!results.Previous){%>
+                disabled
+                <%}%>
+                <%if(results.Previous){%>
+                  class="btn btn-dark shadow-sm me-2"
+                  onclick="location.assign('/api/v1/Location//?page=<%=results.Previous.page%>&limit=15&category=<%=results.currentCat%>')"
+                <%}%>
+                >prev
+                </button>
+                <button 
+                class="btn me-2 btn-dark"
+                <%if(!results.next){%>
+                  disabled
+                  <%}%>
+                  <%if(results.next){%>
+                    class="btn btn-dark shadow-sm me-2"
+                    onclick="location.assign('/api/v1/Location//?page=<%=results.next.page%>&limit=15&category=<%=results.currentCat%>')"
+                <%}%>
+                >Next</button>
+              </footer>
+        </div>
+   </div>
+   
+
+     <!-- pls wait -->
+     <div id="dowloadoption" class="modal flex items-center flex-col justify-center gap-3 p-3">
+      <div class="modal-body d-flex flex-column container bg-light">
+        <table class="border w-100">
+          
+            <svg xmlns="http://www.w3.org/2000/svg" onclick="document.getElementById('dowloadoption').style.display='none'" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+            </svg>
+            <br>
+            <hr>
+
+            <form id="dataForm" style="display:none !important;">
+              <div class="card-header d-flex justify-content-between w-100">
+                <h5 class="card-title form-text text-warning">Select Report Period</h5>
+              </div>
+              
+              <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="col-md-2">
+                    <label for="pricelist" class="form-label">Start Date</label>
+                    <input type="date" name="Startdate" id="date" required class="form-control border" >
+                </div> 
+                <span>
+                    <img width="50" height="50" src="https://img.icons8.com/stickers/100/arrow.png" alt="arrow"/>
+                </span>
+                <!-- end date  -->
+                <div class="col-md-2">
+                    <label for="pricelist" class="form-label">End Date</label>
+                    <input type="date" name="Enddate" id="date" required class="form-control border" >
+                </div>
+                <button class="btn btn-success p-2"><img width="14" height="14" src="https://img.icons8.com/material-outlined/24/search--v1.png" alt="search--v1"/></button>
+              </div>
+              </form>
+              <hr>
+              <br>
+
+          <thead class="border">
+            <td class="border"><b>INVOICE REF NO</b></td>
+            <td class="border"><b>CUSTOMER</b></td>
+            <td class="border"><b>DELIVERY FEE (₦)</b></td>
+            <td class="border"><b>DELIVERY DATE</b></td>
+            <td class="border"><b>WayBill No</b></td>
+            <td class="border"><b>DISPATCHER</b></td>
+            <td class="border"><b>DISPATCHER Tel..</b></td>
+            <td class="border"><b>DISPATCHER PLATE Num...</b></td>
+            <td class="'border"><b>COMMENT</b></td>
+            <td class="'border"><b></b></td>
+          </thead>
+          <tbody id="Tsearch"></tbody>
+        </table>
+        <i>Search Result</i>
       </div>
-      <script src="/jquery-3.3.1.min.js"></script>
-    <script src="/popper.min.js"></script>
-    <script src="/bootstrap.min.js"></script>
-    <script src="/main.js"></script>
+  </div>
+  
 </body>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js" integrity="sha512-42PE0rd+wZ2hNXftlM78BSehIGzezNeQuzihiBCvUEB3CVxHvsShF86wBWwQORNxNINlBPuq7rG4WWhNiTVHFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  const formatter = new Intl.DateTimeFormat('us-as')
+   const billreferenceNo = document.getElementById('billreferenceNo')
+   billreferenceNo.addEventListener('change',async(event) => {
+    // clear previous bill reference
+    document.getElementById('customer').innerText = ""
+    document.getElementById('Grandtotals').innerText = ""
+    let tbody = document.getElementById('orders').innerHTML = ''
+
+    const request = await fetch(`/api/v1/delivery/${event.target.value}`,{
+      method: 'GET',
+      headers: {"content-type": "application/json"}
+    })
+    const response = await request.json()
+    if(response){
+      document.getElementById('customer').innerText = response.Customers.Username.toUpperCase()
+      document.getElementById('Grandtotals').innerText = `₦${response.deliveryBill.grandTotal}`
+      // FOR ORDERS
+      let count = 1
+      response.deliveryBill.orders.forEach(element => {
+        // alert(element.item.Name)UMO Qty
+        let tbody = document.getElementById('orders')
+        let tr = document.createElement('tr')
+        let counter = document.createElement('td')
+        let productName = document.createElement('td')
+        let scale = document.createElement('td')
+        let qty = document.createElement('td')
+
+        // assign element to variable
+        counter.innerText = `${count++}`
+        productName.innerText = element.item.Name
+        scale.innerText = element.scale
+        qty.innerText = element.Qty
+
+        // append element to table body
+        tr.appendChild(counter)
+        tr.appendChild(productName)
+        tr.appendChild(scale)
+        tr.appendChild(qty)
+        tbody.append(tr)
+      });
+    }
+   })
+
+  const form = document.getElementById("form")
+  form.addEventListener("submit",async(e) => {
+    e.preventDefault()
+    // get date atributes field
+    let billrefNo = form.referenceNo.value
+    const date = form.date.value
+    const remark = form.remark.value
+    const plateNumber = form.plateNumber.value
+    const DriverNumber = form.DriverNumber.value
+    const fee = form.fee.value
+    const DriverName = form.DriverName.value
+    const request = await fetch(`/api/v1/delivery/${billrefNo}`,{
+      method:'PATCH',
+      body:JSON.stringify({DELIVERYDATE:date,
+        isDelivered:true,DeliveryComment:remark,
+        vehicleNumber:plateNumber,DriverNumber:DriverNumber,
+        shippingFee:fee,DriverName:DriverName,
+        WayBillNo:`WB${Math.floor(Math.random()*12345)}${plateNumber.substring(0,3)}`
+      }),
+      headers:{"content-type": "application/json"}
+    })
+    const response =  await request.json()
+    if(response.message){
+      // location.assign(`/api/v1/invoice/${billreferenceNo.value}`)
+      // alert(`${response.message}.Generating Waybill, please wait a bit till download is complete.`)
+      alert(`${response.message}`)
+      form.reset()
+      location.reload()
+    }else if(response.error){
+      alert(response.error)
+    }
+  });
+
+  let datefilter
+
+  const SearchForm = document.getElementById('search')
+  SearchForm.addEventListener('submit', async (e)=>{
+    e.preventDefault()
+   const modal = document.getElementById('dowloadoption')
+   modal.style.display = 'block'
+    const request = await fetch('/api/v1/Getfulldb',{
+        method:'GET',
+        headers:{'Content-Type': 'application/json'},
+    })
+        const response = await request.json()
+        try {
+          const result = response.invoice.filter((inv)=>{
+            return inv.WayBillNo === SearchForm.query.value || inv.billReferenceNo === SearchForm.query.value || inv.customerName.toLowerCase().includes(SearchForm.query.value.toLowerCase().trim()) && inv.whId ===document.getElementById('Whid').value ;
+          })
+          if(result.length < 1 )
+          {
+            modal.style.display = 'none';
+            throw new Error("Couldn't find the querried file")
+          }else{
+            datefilter = result
+            renderDom(result)
+          }
+          } catch (error) {
+            alert(error.message)
+          }
+  })
+
+
+  // further filter with dates
+  const dataForm = document.getElementById('dataForm')
+  dataForm.addEventListener('submit',(e)=>{
+    e.preventDefault()
+    try {
+      if(dataForm.Startdate.value === '' || dataForm.Enddate.value ==='' )
+      {
+        throw new Error('Please Try again')
+      }else
+      {
+            const generateDates = (to ,from) => {
+            const arr = [];
+          
+            while (from.getTime() <= to.getTime()) {
+            arr.push(dayjs(from).format("D-MMM-YYYY"));
+          from.setDate(from.getDate() + 1);
+            }
+            return arr;
+          };
+
+
+          display = datefilter.filter(bill =>{
+              const dates = generateDates(new Date(dataForm.Enddate.value),new Date(dataForm.Startdate.value))
+              const formattedDate = dayjs(bill.DELIVERYDATE).format("D-MMM-YYYY");
+              return dates.includes(formattedDate);
+            })
+
+
+        renderDom(display)
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+  })
+
+  const renderDom = (result) =>{
+    const tbody = document.getElementById('Tsearch')
+    tbody.innerHTML = ''
+      result.forEach(element => {
+        dataForm.style.display = 'block'
+        let tr = document.createElement('tr')
+        let waybillNo = document.createElement('td')
+        let invoiceNo = document.createElement('td')
+        let a = document.createElement('a')
+        let customer = document.createElement('td')
+        let deliveryFee = document.createElement('td')
+        let deliverDate = document.createElement('td')
+        let dispacher = document.createElement('td')
+        let dispatchtel = document.createElement('td')
+        let dispatchPlate = document.createElement('td')
+        let comment = document.createElement('td')
+
+        // assign element to variable
+        if(element.billStatus.toUpperCase() == 'CANCELLED'){
+          invoiceNo.innerHTML = `<strike ><a class="text-danger" href="/api/v1/bill/${element._id}" >${element.billStatus.toUpperCase().substring(0,3)}/${element.billReferenceNo}/${element.invoicelocation}</a></strike>`
+        }else{
+
+          invoiceNo.innerHTML = `<a href="/api/v1/bill/${element._id}" >${element.billStatus.toUpperCase().substring(0,3)}/${element.billReferenceNo}/${element.invoicelocation}</a>`
+        }
+        waybillNo.innerText = element.WayBillNo
+        customer.innerText = element.customerName
+        deliveryFee.innerText = `₦${element.shippingFee}.00`
+        deliverDate.innerText = moment(element.DELIVERYDATE).format('l')
+        dispacher.innerText = element.DriverName
+        dispatchtel.innerText = element.DriverNumber
+        dispatchPlate.innerText = element.vehicleNumber
+        comment.innerText = element.DeliveryComment
+
+        // append element to table body
+        tr.appendChild(invoiceNo)
+        tr.appendChild(waybillNo)
+        tr.appendChild(customer)
+        tr.appendChild(deliveryFee)
+        tr.appendChild(deliverDate)
+        tr.appendChild(waybillNo)
+        tr.appendChild(dispacher)
+        tr.appendChild(dispatchtel)
+        tr.appendChild(dispatchPlate)
+        tr.appendChild(comment)
+        tbody.append(tr)
+      });
+  }
+
+</script>
 </html>

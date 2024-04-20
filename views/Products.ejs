@@ -36,6 +36,7 @@
   top: 0px;
   position: relative;
   max-width: 262px;
+  height: fit-content;
   background-color: #f2f8f9;
   border-radius: 4px;
   padding: 32px 24px;
@@ -46,7 +47,7 @@
   border: 1px solid #f2f8f9;
   font-family: 'Dancing Script', cursive;
   font-family: 'Nova Square', sans-serif;
-  height: 250px  !important;
+
   &:hover {
     transition: all 0.2s ease-out;
     box-shadow: 0px 4px 8px rgba(38, 38, 38, 0.2);
@@ -119,15 +120,33 @@
       <%if(user.role ==="Admin" || user.jobTittle === 'Junior Accountant'  || user.jobTittle === 'Accountant' ){%>
         <div class="d-flex justify-content-between p-2 bg-success-subtle ">
             <a class="btn btn-dark m-1" href="/api/v1/register/new/product">Create-new Product</a>
+           <div>
             <span onclick="location.assign('/api/v1/ExcelProduct')" title="Export <%=Products.length%> product in Xlsx List">
-              <img height="40" width="40" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB90lEQVR4nGNgGAWjYBSMgiEJxCYEZ4hNCP4oNjHkP6lY81A96fhg3Uetg3Xp1PQAWY4n2wOHwPgD9TxApuMp9MD/UQ/AwGgMHBpNQsM0CXEXWhRwF1p84Smy+E8RLrH8L9TsMSAe+EKx42G42OI/T4MrBpZck0o2ZiAEqOZ4GB71QOpoDPwXLrP9f+f1o/8gULVpEjx5aLUE/v/x+9f/b79+/NdpDR7cSShiXhnYA2++vP8vUekEFlt5didYrGHr9KGRB3ZdPw52cOO2Gf8te2L///339//tVw/BMTQkPGDSGfn/15/f/99/+/T/2L0L///9+/ffa1r20CqFphxc8R8Glp/ZPvSK0YUnNsE9sOLsDoIeEHfXwsBC04LIxgyUeMBzahY42Zx6cPn/kbvnwZ7wn5k/NDwgXGb7/8aL+2BHg9K9/YQksGcevn32X6zCcfB7oHvPArDjd1w7ChfbdOkAWKx378LB7QGzrihw6QMqNq174+Dihh1h/3///QPGVr2xg9cDPBTgUQ9MG2kxwF1k/plqHigwHwAPFJrnUcUTBeb/hKL0v4m7a75Hx6oZDmRjBmoBCQ+t/+Ri9TR7sjHDqAegYDQG0kaT0EhPQu5aH+nvATvqTXBIemilSXhofaCfB+w+qKbYp1LNA6NgFIyCUcBADQAA6UC2Ipn+q/gAAAAASUVORK5CYII=">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cloud-download" viewBox="0 0 16 16">
+                <path d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383"/>
+                <path d="M7.646 15.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 14.293V5.5a.5.5 0 0 0-1 0v8.793l-2.146-2.147a.5.5 0 0 0-.708.708z"/>
+              </svg>
             </span>
+   
+            <label for="BulkUpload" onclick="showuploadmodal()">
+              <span title="Click to Bulk Upload New product List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-database-up" viewBox="0 0 16 16">
+                  <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.354-5.854 1.5 1.5a.5.5 0 0 1-.708.708L13 11.707V14.5a.5.5 0 0 1-1 0v-2.793l-.646.647a.5.5 0 0 1-.708-.708l1.5-1.5a.5.5 0 0 1 .708 0"/>
+                  <path d="M12.096 6.223A5 5 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.5 4.5 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.5 4.5 0 0 1-.813-.927Q8.378 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.6 4.6 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10q.393 0 .774-.024a4.5 4.5 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777M3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4"/>
+                </svg>
+              </span>
+            </label>
+           
+           </div>
+                
           </div>
           <%}%>
         <div class=" overflow-y-scroll flex-wrap d-flex gap-2" style="overflow-y:scroll !important; height:73vh !important;">
         <%if(Products){%>
             <% Products.forEach((product)=> { %>
-                <div class="card2 m-1 mb-3 shadow-sm" style="width:13rem;" title="<%=product.Name%>" >
+                <div class="card2 m-1 mb-3 shadow-sm" style="width:13rem; border: <%if (product.Ecom_sale){%>
+                  1px solid <%= product.color %>
+                <%}%>;" title="<%=product.Name%>" >
                     
                         <div class="card-img-top justify-content-center d-flex p-2">
                             <img src="<%if(product.image){%>
@@ -161,8 +180,8 @@
  <!-- The Modal -->
  <div id="myModal" class="modal flex items-center flex-col justify-center gap-3 shadow">
     <!-- Modal content -->
-    <div class=" modal-content container" style=" background-color: transparent !important; border: none !important;">
-        <div class="spinner-border text-info" role="status" style="width: 3rem; height: 3rem;">
+    <div class=" modal-content container" style=" background-color: transparent !important; border: none !important;" id="content">
+        <div class="spinner-border text-info" role="status" style="width: 3rem; height: 3rem;" >
             <span class="visually-hidden"></span>
      </div>
  </div>
@@ -176,5 +195,35 @@
         },3000)
         location.assign(`/api/v1/Product/${event.target.value}/`)
     })
+
+    
+ const showuploadmodal = () =>{
+  document.getElementById('myModal').style.display = 'block';
+  const content = document.getElementById('content');
+  content.innerHTML = `
+         <div class="card bg-success-subtle mb-3 shadow" style="max-width: 18rem;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-filetype-xls" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM6.472 15.29a1.2 1.2 0 0 1-.111-.449h.765a.58.58 0 0 0 .254.384q.106.073.25.114.143.041.319.041.246 0 .413-.07a.56.56 0 0 0 .255-.193.5.5 0 0 0 .085-.29.39.39 0 0 0-.153-.326q-.152-.12-.462-.193l-.619-.143a1.7 1.7 0 0 1-.539-.214 1 1 0 0 1-.351-.367 1.1 1.1 0 0 1-.123-.524q0-.366.19-.639.19-.272.527-.422.338-.15.777-.149.457 0 .78.152.324.153.5.41.18.255.2.566h-.75a.56.56 0 0 0-.12-.258.6.6 0 0 0-.247-.181.9.9 0 0 0-.369-.068q-.325 0-.513.152a.47.47 0 0 0-.184.384q0 .18.143.3a1 1 0 0 0 .405.175l.62.143q.326.075.566.211a1 1 0 0 1 .375.358q.135.222.135.56 0 .37-.188.656a1.2 1.2 0 0 1-.539.439q-.351.158-.858.158-.381 0-.665-.09a1.4 1.4 0 0 1-.478-.252 1.1 1.1 0 0 1-.29-.375m-2.945-3.358h-.893L1.81 13.37h-.036l-.832-1.438h-.93l1.227 1.983L0 15.931h.861l.853-1.415h.035l.85 1.415h.908L2.253 13.94zm2.727 3.325H4.557v-3.325h-.79v4h2.487z"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-right" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5m14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-database-up" viewBox="0 0 16 16">
+                  <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.354-5.854 1.5 1.5a.5.5 0 0 1-.708.708L13 11.707V14.5a.5.5 0 0 1-1 0v-2.793l-.646.647a.5.5 0 0 1-.708-.708l1.5-1.5a.5.5 0 0 1 .708 0"/>
+                  <path d="M12.096 6.223A5 5 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.5 4.5 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.5 4.5 0 0 1-.813-.927Q8.378 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.6 4.6 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10q.393 0 .774-.024a4.5 4.5 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777M3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4"/>
+                </svg>
+            </div>
+            <div class="card-body">
+              <p class="card-text">To 'BULK UPLOAD',Ensure file type is in Xlsx format and Column names are represented as the same with default Template.</p>
+            </div>
+            <form action="/api/v1/uploadbulk" enctype="multipart/form-data" method="POST" class=' d-flex justify-content-between flex-column p-2'>
+              <input type="file" name="data" />
+              <button type="submit"class='btn btn-danger shadow' onclick= ${this.disabled = true} >Upload selected file To DataBase</button>
+            </form>
+            <button class='btn btn-dark rounded' type="button" onclick="document.getElementById('myModal').style.display = 'none'" >Cancel</button>
+          </div>
+  `
+ }
 </script>
 </html>

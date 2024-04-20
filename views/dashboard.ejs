@@ -383,25 +383,21 @@ span {
       <%}%>
         <!-- performance -->
         <span
-        onclick="location.assign('/api/v1/Appraisals/<%=user._id%>')"
+        onclick="location.assign('/api/v1/Appraisals/Management/<%=user._id%>?page=1&limit=18&category=all')"
           class="card m-1 mb-3 shadow-lg"
           title="Employee performance"
-          style="cursor: pointer;display: none;"
+          style="cursor: pointer;"
         >
           <div class="card-img-top justify-content-center d-flex p-2">
-            <img
-            src="data:image/png;base64,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"
-            width="40"
-              height="40"
-            />
+            <img width="40" height="40" src="https://img.icons8.com/external-icongeek26-glyph-icongeek26/64/external-checklist-uxui-icongeek26-glyph-icongeek26.png" alt="external-checklist-uxui-icongeek26-glyph-icongeek26"/>
           </div>
         </span>
 
         <!-- Task shedula -->
-        <span
-        onclick="location.assign('/api/v1/Settings/<%=user._id%>')"
+        <!-- <span
+        onclick="location.assign('/api/v1/Task_Management/<%=user._id%>')"
           class="card m-1 mb-3 shadow-lg"
-          title="User Settings and Access"
+          title="Task Management"
           style="cursor: pointer;"
         >
           <div class="card-img-top justify-content-center d-flex p-2">
@@ -411,7 +407,7 @@ span {
               height="40"
             />
           </div>
-        </span>
+        </span> -->
         <!--ends here  -->
 
 

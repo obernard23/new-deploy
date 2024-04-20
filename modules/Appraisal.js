@@ -1,28 +1,33 @@
 const mongoose = require('mongoose')
 
 var kpis = new mongoose.Schema ( {  
-    measure : String  , 
-    objective : String ,
-    target: Number ,
-    employeeScore: Number ,
-    ManagerScore: Number ,
-    MdScore:Number ,
+    score : Number, 
+    innovation : Number ,
+    Measures: Number ,
+    Perspective: String ,
+    Objectives: String ,
+    AprasalDate:String ,
   });  
   
   var Appraisal = new mongoose.Schema ( {  
-    Employe : mongoose.Types.ObjectId , 
+    Employe:{
+      type: mongoose.Types.ObjectId ,
+      required: true
+    }, 
     title : String  , 
     date : Date  , 
-    kpi : [kpis]  , 
-    meta : {  
-      ratings : String  , 
-      score : Number  
-    } ,
+    kpi : [kpis]  ,
     MdComment :String , 
     HrCommnet :String ,
     ManagerComment :String ,
     employeComment :String ,
-  });  
+    generalRating :String ,
+    status:{
+      type:String,
+      default:"pending",
+      required: true
+    },
+  },{timestamps:true},);  
   
  const Appraisals = mongoose.model ('Appraisal', Appraisal);
 

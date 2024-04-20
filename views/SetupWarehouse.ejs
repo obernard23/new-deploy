@@ -12,7 +12,7 @@
     
     <!-- Style -->
     <link rel="stylesheet" href="/style.css">
-<body>
+<body style="overflow-x: hidden;">
     <nav class="navbar bg-black">
       <div class="container-fluid">
         <span class="navbar-brand" onclick="history.back()" href="/" title="Back">
@@ -26,7 +26,7 @@
   
                   <h5>
                       <a class="nav-link breadcrumb-item active" aria-current="page"  role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: #fff !important;">
-                         SET-UP <%=warehouse.WHName.toUpperCase()%> 
+                        SET-UP <%=warehouse.WHName.toUpperCase()%> 
                       </a>
                   </h5>
                   
@@ -37,7 +37,7 @@
       </div>
     </nav>
     <!-- form here -->
-    <div class="container border mt-3 p-1" style="color: aliceblue; background-color: black;">
+    <div class=" border m-3  p-2" style="color: rgb(0, 0, 0); ">
         <form class="row g-3 needs-validation" id="EditWareHouseForm" novalidate>
             <div class="col-md-4">
               <label for="validationCustom01" class="form-label">ALIAS</label>
@@ -106,9 +106,12 @@
             </div>
           </form>
     </div>
+    <br>
+    <hr>
+    <br>
     <!-- ends here -->
-    <h6></h6>
-    <div class="container border shadow">
+    <div class=" p-2 border shadow">
+      <h6 class="form-text">PHYSICAL INVENTORY ADJUSTMENTS</h6>
         <div class="table-responsive custom-table-responsive" >
     
             <table class="table custom-table " style="font-size: 15px !important;">
@@ -147,8 +150,14 @@
                             </div>
                           </ul>
                       <!--ends here  -->
-                        <td>
+                        <td title="<%=product.productName%>">
                             <%=product.productName%>
+                            <a class="text-primary" href="/api/v1/Product/<%=product.productId%>/<%=product.productName%>" title="About <%=product.productName%>">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                              </svg>
+                            </a>
                         </td>
                         <td>
                             <%=product.ADCcode%>

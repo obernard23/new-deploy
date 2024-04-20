@@ -32,7 +32,7 @@
       </nav>
       
       <div class="p-3 bg-success-subtle">
-        <%if(user.role ==="Admin"  ){%>
+        <%if(user.role === "Admin" ||user.jobTittle === "CFO" || user.jobTittle === "Invoicer"){%>
           <!-- <a class="btn btn-success m-3" href="/api/v1/Product/Create/new">Create-new Product</a> -->
           <button class="btn btn-success m-3" onclick="document.getElementById('myModal').style.display='block'">Register WareHouse Product</button>
           <li class="nav-item dropdown btn btn-success">
@@ -134,7 +134,7 @@
                     </td>
                     <td>
                             <!-- product scale -->
-                         <P><%=product.UMO.toUpperCase()%></P>
+                         <P><%=product.UMO ? product.UMO.toUpperCase() : ""%></P>
                     </td>
                     <td>
                                <!-- product scale -->
@@ -181,30 +181,21 @@
      <label for="productList" class="form-label fw-bolder"
 
        >Choose From Product List</label
-
      >
+      <input type="text" placeholder="Type product name" required list="products" class="form-control border" id="productList">
+    <datalist id="products">
+      <option >Choose...</option>
+      <%if(PurchasedProduct){%> <%PurchasedProduct.forEach((product)=>{%>
 
-    
-
-     <select id="productList" class="form-select">
-
-       <option >Choose...</option>
-
-       <!-- display options for product -->
-
-       <%if(PurchasedProduct){%> <%PurchasedProduct.forEach((product)=>{%>
-
-       <option value="<%=product._id%>">
-
-         <%=product.Name%> (<%=product.UMO%>)
-
-       </option>
-
-       <%})%> <%}%>
-
-     </select>
-
-
+        <option value="<%=product._id%>">
+ 
+          <%=product.Name%> (<%=product.UMO%>)
+ 
+        </option>
+ 
+        <%})%>
+         <%}%>
+    </datalist>
 
      <label class="flex flex-row gap-9 justify-around m-2 fw-bolder"
 

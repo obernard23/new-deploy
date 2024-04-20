@@ -197,8 +197,8 @@
           <div class="col-6">
             <label for="street" class="form-label">  </label>
             <p>
-              <a href="/api/v1/" class="link-success link-opacity-25-hover">
-               Last Appraisal 
+              <a href="/api/v1/Appraisal/<%=Employee._id%>" class="link-success link-opacity-25-hover">
+              Start Appraisal For <%=Employee.firstName%> <%=Employee.lastName%>
               </a>
             </p>
           </div>
@@ -207,7 +207,7 @@
             <label for="street" class="form-label">  </label>
             <p>
               <a href="/api/v1/" class="link-warning link-opacity-25-hover">
-               Absence | TimeOut
+              Request Absence || TimeOut
               </a>
             </p>
           </div>
@@ -222,18 +222,18 @@
             
           <div class="col-md-6">
             <label for="FirstName" class="form-label">First Name</label>
-            <input type="text" class="form-control is-invalid" id="FirstName"  name="firstName" value="<%=Employee.firstName%>" required />
+            <input type="text" class="form-control is-valid" id="FirstName"  name="firstName" value="<%=Employee.firstName%>" required />
           </div>
 
           <div class="col-md-6">
             <label for="LastName" class="form-label">Last Name</label>
-            <input type="text" class="form-control is-invalid" id="LastName" name="lastName" value="<%=Employee.lastName%>" required />
+            <input type="text" class="form-control is-valid" id="LastName" name="lastName" value="<%=Employee.lastName%>" required />
           </div>
           <div class="col-md-6">
             <label for="inputEmail4" class="form-label">Email</label>
             <input
               type="email"
-              class="form-control is-invalid"
+              class="form-control is-valid"
               id="inputEmail4"
               placeholder="Example@Bigbern.com"
               required
@@ -242,8 +242,8 @@
             />
           </div>
           <div class="col-md-6">
-            <label for="DOB" class="form-label">DOB</label>
-            <input type="date" class="form-control is-invalid" id="DOB" name="DOB" value="<%=Employee.DOB%>" />
+            <label for="DOB" class="form-label">Date Of Bitrh</label>
+            <input type="date" class="form-control is-valid" id="DOB" name="DOB" value="<%=Employee.DOB%>" />
           </div>
           <div class="col-12">
             <label for="inputAddress" class="form-label">Home Address</label>

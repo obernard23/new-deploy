@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const Employees = require('../modules/Employees');
 
 const requireAuth = (req, res, next) => {
-  const token = req.cookies.DemoBade;
+  const token = req.cookies.jwt;
 
   // check json web token exists & is verified
   if (token) {
@@ -20,7 +20,7 @@ const requireAuth = (req, res, next) => {
 
 // check current user
 const checkUser = (req, res, next) => {
-  const token = req.cookies.DemoBade;
+  const token = req.cookies.jwt;
   if (token) {
     jwt.verify(token, 'BigBern', async (err, decodedToken) => {
       if (err) {

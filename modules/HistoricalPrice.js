@@ -52,6 +52,11 @@ const HPC = new Schema({
     type: Decimal128,
     required: true,
   },
+  overallPriceChange:{
+    type: Decimal128,
+    required: true,
+    default:0
+  },
 });
 
 /**

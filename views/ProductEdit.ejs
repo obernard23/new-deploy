@@ -85,7 +85,7 @@
             </div>
             <div class="border-b flex font-bold">
                 <div class="border-end p-1 subs" name="category" title="Double click to show section">Product information</div>
-                <%if(user.role === "Admin"  ||user.jobTittle === "CFO"){%>  
+                <%if(user.role === "Admin"  ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%>  
                 <div class="border-end p-1 subs" name="category" title="Double click to show section">Product Settings</div>
                 <div class="border-end p-1 subs" name="category" title="Double click to show section">Description</div> 
                 <%}%> 
@@ -94,17 +94,23 @@
                 <div class="flex flex-col gap-9 hidden border-b p-5" id="workInfo">
                     <div class="input-group mb-3">
                     <span class="input-group-text">Whole-sale Price: ₦</span>
-                        <input type="number" name="WareHouse_Price" step="any" value="<%=product.WareHouse_Price%>" placeholder="Eg ₦10.00">
+                        <input type="number" name="WareHouse_Price" step="any"  <%if(user.jobTittle !== "CFO"){%>
+                            disabled
+                        <%}%>  value="<%=product.WareHouse_Price%>" placeholder="Eg ₦10.00">
                     </div>
 
                     <div class="input-group mb-3">
                         <span class="input-group-text"> Super Market price ₦</span>
-                        <input type="number" name="Market_Price" step="any"  value="<%=product.Market_Price%>" placeholder="Eg ₦10.00">
+                        <input type="number" name="Market_Price" step="any"  <%if(user.jobTittle !== "CFO"){%>
+                            disabled
+                        <%}%>   value="<%=product.Market_Price%>" placeholder="Eg ₦10.00">
                     </div>
 
                     <div class="input-group mb-3">
                         <span class="input-group-text"> Van price ₦</span>
-                        <input type="number" name="Van_Price" step="any"  value="<%=product.Van_Price%>" placeholder="Eg ₦10.00" >
+                        <input type="number" name="Van_Price" step="any"  <%if(user.jobTittle !== "CFO"){%>
+                            disabled
+                        <%}%>  value="<%=product.Van_Price%>" placeholder="Eg ₦10.00" >
                     </div>
 
                     <div class="col-md-7">
@@ -117,16 +123,18 @@
                         <input type="number" class="form-control" name="Pieces" id="Pieces" value="<%=product.Pieces ? product.Pieces : 0%>" placeholder=' Define number of Pieces in Roll ' title=" Define number of Pieces in roll ">
                     </div>
 
-                    <%if(user.role === "Admin" ||user.jobTittle === "CFO"){%> 
+                    <%if(user.role === "Admin" ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%> 
                     <div class="input-group mb-3">
                         <span class="input-group-text">Buying price:</span>
                         <input type="number" step="any" name="vendor_Price" disabled value="<%=product.vendor_Price%>" placeholder="Eg ₦10.00" >
                     </div>
 
-                    <%if(product.Sellable && user.role === "Admin" ||user.jobTittle === "CFO"){%> 
+                    <%if(product.Sellable && user.role === "Admin" ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%> 
                         <div class="input-group mb-3">
-                            <span class="input-group-text">Buying Price Update ₦</span>
-                            <input type="number" step="any" id="updatedBuyingPrice"  value="<%=product.updatedBuyingPrice%>" placeholder="Eg ₦10.00" >
+                            <span class="input-group-text">Update Buying Price  ₦</span>
+                            <input type="number" step="any" id="updatedBuyingPrice"  value="<%=product.updatedBuyingPrice%>" <%if(user.jobTittle !== "CFO"){%>
+                                disabled
+                            <%}%> placeholder="Eg ₦10.00" title="This field is sensitive. Updating the buying price will re calculate Proffit and Lost">
                             <button class="p-2 shadow-sm bg-danger w-5" title="Update new vendor price for <%=product.Name%>" id="self" onclick="UpdateBuyingPrice()">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy2" viewBox="0 0 16 16">
                                     <path d="M1.5 0h11.586a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 14.5v-13A1.5 1.5 0 0 1 1.5 0M1 1.5v13a.5.5 0 0 0 .5.5H2v-4.5A1.5 1.5 0 0 1 3.5 9h9a1.5 1.5 0 0 1 1.5 1.5V15h.5a.5.5 0 0 0 .5-.5V2.914a.5.5 0 0 0-.146-.353l-1.415-1.415A.5.5 0 0 0 13.086 1H13v3.5A1.5 1.5 0 0 1 11.5 6h-7A1.5 1.5 0 0 1 3 4.5V1H1.5a.5.5 0 0 0-.5.5m9.5-.5a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
@@ -173,11 +181,13 @@
                     </label>
     
                     <label class="flex gap-9 ">
-                        Product Code: <input type="text" required value="<%=product.ACDcode%>"  name="AdcCode"placeholder='Product Code is auto generated but Editable'id="AdcCode" data-id='<%=product._id%>' >
+                        Product Code: <input type="text" required value="<%=product.ACDcode%>"  <%if(user.jobTittle !== "CFO"){%>
+                            disabled
+                        <%}%>   name="AdcCode"placeholder='Product Code is auto generated but Editable'id="AdcCode" data-id='<%=product._id%>' >
                     </label>
     
                 </div>
-                <%if(user.role === "Admin" ||user.jobTittle === "CFO"){%>   
+                <%if(user.role === "Admin" ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%>   
                 <!-- product settings -->
                 <div id="privateinfo" class="flex flex-col hidden gap-5 p-5 border-b ">
                     <div  class="col-md-7">
@@ -227,7 +237,7 @@
             
                     <div class="input-group mb-3">
                         <span class="input-group-text">VAT</span>
-                        <input type="text" class="form-control" placeholder='set Value Added tax on this product' step="any" name="VAT" value='<%=product.VAT.$numberDecimal ? product.VAT.$numberDecimal : product.VAT%>'  aria-label="Amount (to the nearest dollar)">
+                        <input type="text" class="form-control"  placeholder='set Value Added tax on this product' step="any" name="VAT" value='<%=product.VAT.$numberDecimal ? product.VAT.$numberDecimal : product.VAT%>'  aria-label="Amount (to the nearest dollar)">
                         <span class="input-group-text">%</span>
                     </div>
                     <div class="input-group mb-3">
@@ -255,6 +265,7 @@
                        <td class="border">Old price</td>
                        <td  class="border">Current Value</td>
                        <td  class="border">Rate</td>
+                       <td  class="border">P/L Margin</td>
                       </thead>
                       <tbody id="" >
                       <%product.HistoricalPrice.forEach((activity)=>{%>
@@ -263,6 +274,7 @@
                           <td class="border">₦<%=activity.oldPrice%></td>
                           <td  class="border">₦<%=activity.Newprice%></td>
                           <td  class="border">₦<%=activity.diffrence%></td>
+                          <td  class="border">₦<%=activity.overallPriceChange%></td>
                       </tr>
                     </tbody>
                     <%})%>        
@@ -279,7 +291,7 @@
                 <%}%> 
             </div>
 
-                <%if(user.role === "Admin" ||user.jobTittle === "CFO"){%>   
+                <%if(user.role === "Admin" ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%>   
                 <!-- description -->
                 <div id="thirdinfo" class="form-floating">
                         <textarea class="form-control" placeholder="Leave a discription here" rows="4" cols="50" name="Description" id="floatingTextarea" title="please note that description added will reflect on your E-commerce Product Description (EPD). Hence, it should be properly Constructed."><%=product.Description%></textarea>
@@ -287,7 +299,7 @@
                 </div>
                 <%}%> 
 
-            <%if(user.role === "Admin" ||user.jobTittle === "CFO"){%> 
+            <%if(user.role === "Admin" ||user.jobTittle === "CFO" ||user.jobTittle === "Accountant"){%> 
             <button  type="submit">Update <%=product.Name%> </button>
             <%}%> 
         </form>

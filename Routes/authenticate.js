@@ -1,8 +1,12 @@
 const { Router } = require('express');
+// Import dependencies
+const YAML = require("js-yaml");
+const multer = require("multer");
+const product = require('../modules/Product');
 const authController = require('../controllers/authControllers')
 const DepreciationController = require('../controllers/DepreciationShedule')
 const {requireAuth,checkUser} = require('../middleware/authmidddleware')
-const {PostInvoice,ValidStockTransfer,adminWareHouseSetUp,AccountantViewAccess} = require('../warehouseValidation/warehouseValidate')
+const {PostInvoice,ValidStockTransfer,adminWareHouseSetUp,AccountantViewAccess,removeStock} = require('../warehouseValidation/warehouseValidate')
 const {checkResetUser,checkLoginUser} = require('../middleware/checkUser')
 const {checkUserRole,ManagerAccess} = require("../middleware/userRole");
 const bills = require('../modules/Bills');
@@ -23,6 +27,8 @@ const NotifyAccountantPR = require("../Functions/NotifyAccountantPR");//for Acco
 const NotifyCFOTransfer = require("../Functions/NotifyCFOTransfer");//for Accountant
 const ScrapResponse = require('../Functions/ScrapResponse')
 const NotifyCustomerIncentive = require('../Functions/NotifyCustomerIncentive');
+const NotifyCFOPriceChange = require("../Functions/PriceChangrNootification");//for Accountant
+const XLSX = require('xlsx');
 
 const router = Router()
 
@@ -39,7 +45,7 @@ router.get('/logout/:USERID',requireAuth,authController.logout_get);
 router.get('/employee',requireAuth,authController.OnboardEmployee_get)
 router.get('/Appraisal/:id',requireAuth,authController.Appraisal_get)//for employee to form view
 router.post('/Appraiasl/Employee/Apraisal',authController.Appraisal_post)
-router.get('/Appraisals/:id',authController.AppraisalsManagement_get)//for top management view    
+router.get('/Appraisals/Management/:id',authController.AppraisalsManagement_get)//for top management view    
 
 router.post('/register/employee',authController.Register_post);//to create new employee but not activated
 router.get('/employee/:EmployeeId/user',requireAuth, authController.getSingleEmployee_get)
@@ -61,7 +67,7 @@ router.get(`/product/:ACDcode/bill/:WHID`,requireAuth,authController.productFind
 router.get('/product/:ACDcode/bill',requireAuth,authController.productFindNodIde_get)//get product  with json format for quotation purposes
 router.get('/StoreProductFindNodIde/:ACDcode/:to/:from',requireAuth,authController.StoreProductFindNodIde_get)//FOR WAREHOUSE PRODUCT TRANSFER 
 router.get('/Products',requireAuth,authController.Product_get);
-router.patch('/:id/BuyingPrice_change',requireAuth,authController.BuyingPrice_change);//buying price change
+router.patch('/:id/BuyingPrice_change',requireAuth,authController.BuyingPrice_change,NotifyCFOPriceChange);//buying price change
 router.patch('/Products/:id/edit',requireAuth,authController.Product_patch);
 router.patch('/Products/:id/return',requireAuth,authController.ProductReturn_patch,NotifyWhTovir)//return product to virtual and logs message 
 router.get('/Product/:id/:name',requireAuth,authController.SingleProduct_get)
@@ -102,12 +108,74 @@ router.patch('/warehouse/:ADMINID/:WHID/edit',requireAuth,adminWareHouseSetUp,au
 router.patch('/outbound/:ADMINID/:WHID/:PRODID/:STOREID/edit',requireAuth,adminWareHouseSetUp,authController.Inventory_patch);
 router.post(`/wareHouseToTransfer/:WHID`,requireAuth,authController.WareHouseStoreage_post);//here to register new product toWareHouse
 router.post(`/wareHouseToTransfer/toRecive`,requireAuth,authController.WareHouseStock_post);//use this for deliveries
-router.post('/wareHouse/Bill',requireAuth,PostInvoice,authController.WareHouseBill_post,NotifyAccountant);//to post bill
+router.post('/wareHouse/Bill',requireAuth,PostInvoice,authController.WareHouseBill_post,removeStock,NotifyAccountant);//to post bill
 router.get(`/warehouse/:id/Bills`,requireAuth,authController.WareHouseBill_get);//GET BILL BY WAREHOUSE ID
 router.get(`/bill/:id`,requireAuth,authController.WareHouseSingleBill_get);//get single bill
 router.patch(`/bill/:id/approved`,requireAuth,authController.approveBill_patch);//to approve bills for manager to store keeper
 router.get('/warehouse/Product/:whId',requireAuth,authController.WareHouseStoreage_get);//get products for specific ware house
 router.patch('/warehouse/Product/:whId',requireAuth,authController.WareHouseStoreage_patch);
+
+
+// Setup Storage
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        // Set the destination where the files should be stored on disk
+        cb(null, "uploads");
+    },
+    filename: function (req, file, cb) {
+        // Set the file name on the file in the uploads folder
+        cb(null, file.fieldname + ".xlsx" ) ;
+    },
+    
+  });
+  
+
+const upload = multer({ storage: storage }); // { destination: "uploads/"}
+
+router.post("/uploadbulk",requireAuth,upload.single("data"), (req, res) => {
+    try {
+        // Read the workbook
+        const workbook = XLSX.readFile('./uploads/data.xlsx');
+        
+        // Get the sheet names
+        const sheetNames = workbook.SheetNames;
+        
+        // Get the data from the first sheet (assuming it's named "Sheet1")
+        const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetNames[0]]);
+        
+        // Process the data (for example, log each person's name and age)
+        data.forEach(async products => {
+          await product.create({
+            Name:products.SKU_Name,
+            ACDcode:products.PRODUCT_CODE,
+            category: products.CATEGORY,
+            TotalSale: 0,
+            Van_Price:products.VAN_PRICE,
+            Market_Price:products.SUPER_MARKET_PRICE,
+            WareHouse_Price:products.WAREHOUSE_PRICE,
+            Rolls:products.ROLL_IN_CARTON,
+            Pieces: 0,
+            Sellable: true,
+            Ecom_sale: false,
+            VanPromo: 0,
+            WholesalePromo: 0,
+            MarketPromo: 0,
+            Vendor: '65f65fa961130be9580e869b',
+            vendor_Price:0,
+            image:products.image,
+          } )
+        });
+
+        // Delete the file after we're done using it
+        fs.unlinkSync(`./uploads/data.xlsx`);
+        res.redirect('/api/v1/Products')
+        
+          } catch (error) {
+            error ? res.redirect('/api/v1/404') : ''
+          }
+});//upload multiple documents
+
+
 router.get('/Employee/:employeeId',requireAuth,authController.WareHouseManager_get)
 router.get('/SetUp/:WHID/:ADMINID',requireAuth,adminWareHouseSetUp,authController.WareHouseSetup_get)
 
@@ -270,11 +338,8 @@ router.get('/asset/:id',requireAuth,AccountantViewAccess,DepreciationController.
 router.get('/asset/new_asset/:id',requireAuth,AccountantViewAccess,DepreciationController.assetCreate_get)
 router.post('/createAsset',requireAuth,DepreciationController.asset_post_create)
 router.get('/SingleAsset/:AssetId/:name/:id',requireAuth,DepreciationController.SingleAsset)
+router.patch('/assets/:AssetId/edit',requireAuth,DepreciationController.Asset_Patch)
 router.get('/Birthday/messages',requireAuth,DepreciationController.BirthdayMessage)
-
-
-// app and user ssettings
-router.get('/Settings/:id',requireAuth,DepreciationController.Settings)
 
 
 
