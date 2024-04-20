@@ -1,9 +1,6 @@
 const customer = require("../modules/customers");
 const CustomerReport = require("../modules/customerReport");
-const client = require("twilio")(
-  "AC68902380266ee09dbbbf6238728f930d",
-  "dbc59d53cbcf4f3cc1b98ff648d82293"
-);
+
 const Lead = require("../modules/Leads");
 const Product = require("../modules/Product");
 const Vendor = require("../modules/Vendors");
