@@ -104,7 +104,7 @@
             <%}%>
           "  alt="display photo" srcset="">
           <h6 style="color: rgb(163, 163, 91);"><%=user.firstName.toUpperCase().charAt(0)%><%=user.firstName.substring(1,20)%> <%=user.lastName.toUpperCase().charAt(0)%><%=user.lastName.substring(1,20)%></h6>
-                <input type="text" id="products" class="form-input rounded p-2" list="productsACD" name="referenceNo" placeholder="Search SKU with ACD-Code" />
+                <input type="text" id="products" class="form-input rounded p-2" list="productsACD" name="referenceNo" placeholder="Search SKU with Product Code" />
                 <datalist id="productsACD" >
                  <!-- display options for Bills -->
                  <%Products.forEach((products)=>{%>
