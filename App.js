@@ -1,3 +1,4 @@
+
 const express = require("express");
 const morgan = require("morgan");
 const mongoose = require("mongoose");
@@ -9,9 +10,12 @@ const { WHouse } = require("./modules/warehouse");
 const Employe = require("./modules/Employees");
 const nodemailer = require("nodemailer");
 const Assets = require("./modules/Assets");
+const business = require("./modules/company");
+const product = require('./modules/Product');
 const { PASSWORD, EMAIL, ERPSmtpName } = require("./.env");
 const Expense = require("./modules/Expense");
 const NotifyCFO = require("./Functions/NotifyCFO");
+const XLSX = require('xlsx');
 
 var moment = require("moment");
 const cron = require("node-cron");
@@ -55,7 +59,9 @@ app.use("/api/v1", authRoutes);
 app.use(cors());
 
 app.get("/", async (req, res, next) => {
-  //entrty routes for server
+  const PRODUCT = await product.find({Ecom_sale:true})
+  const Business = await business.findOne().limit(1);
+  // console.log(PRODUCT)
   //check and CREATE ADMIN
   const employee = await Employe.find();
   // console.log(employee)
@@ -77,8 +83,11 @@ app.get("/", async (req, res, next) => {
       }
     });
   }
-  res.redirect("/api/v1/Dashboard/userid");
+  res.status(200).render("index",{title:"Bade | Shop",PRODUCT,Business});
 });
+
+
+
 
 let number = 1;
 // let Birthdaytask = cron.schedule('* * * * * *', () => {
@@ -181,3 +190,4 @@ depreciationTask();
 //   sendBirtdaysEmail()
 // console.log('hellooo')
 // },3000)
+
