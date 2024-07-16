@@ -9,7 +9,7 @@ const CustomerSchema = new  mongoose.Schema({
     },
     Debt:{
         type:Number,
-        defaultValue:0
+        default:0
     },
     Notification:{
         type:Array,
@@ -114,7 +114,12 @@ const CustomerSchema = new  mongoose.Schema({
     location:{
         type:mongoose.Types.ObjectId,
         ref:'WHouse',
-        }
+    },
+    BankJournal:{
+        type:mongoose.Types.ObjectId,
+        ref:'Account',
+    },
+
 
 },{timestamps:true});
 

@@ -7,7 +7,10 @@ const WelcomeMessageHandler = async (req,res) => {
     const data =req.body
     
     let config = {
+        host:EMAIL,
         service : 'gmail',
+        secure:true,
+        port : 465,
         auth : {
             user: EMAIL,
             pass: PASSWORD

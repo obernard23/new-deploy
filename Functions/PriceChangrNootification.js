@@ -9,11 +9,16 @@ const Product = require('../modules/Product')
 const NotifyCFOPriceChange = async (req,res,next) => {
     const updatedproduct = await Product.findById(req.params.id)
     let date = new Date()
-   await Employee.find({jobTittle:'CFO'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { isCFO:true}]})
     .then((CFO) => {
         CFO.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD

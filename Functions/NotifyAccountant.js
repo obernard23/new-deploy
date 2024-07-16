@@ -3,17 +3,23 @@ const Mailgen = require('mailgen');
 const {PASSWORD,EMAIL,ERPSmtpName,url} = require('../.env');
 const Employee = require('../modules/Employees');
 const Bills = require('../modules/Bills');
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
-// this function sends mail to ware house manager 
+// 
 const NotifyAccountant = async (req,res,next) => {
    const bill =  await Bills.findOne({billReferenceNo:req.body.billReferenceNo}).limit(1)//find bill 
    let date = new Date()
-   await Employee.find({jobTittle:'Accountant'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { notifySalesOrder:true}]})
     .then((Accontant) => {
         Accontant.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -21,6 +27,13 @@ const NotifyAccountant = async (req,res,next) => {
                 tls : { rejectUnauthorized: false }//always add this to stop error in console   
             }
         
+             //push notifications to user
+             usernotification({ 
+                Title:`New Sales order Raised for ${req.body.customerName}  with REF NO ${req.body.billReferenceNo}/${req.body.invoicelocation}`,
+                url:`/api/v1/bill/${bill._id}`,
+                userId:person._id
+            })
+
             let transporter = nodemailer.createTransport(config);
         
             let MailGenerator = new Mailgen({

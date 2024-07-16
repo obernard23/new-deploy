@@ -50,7 +50,7 @@
 }
     </style>
     <body>
-      <nav class="navbar bg-black">
+      <nav class="dash navbar bg-black">
         <div class="container-fluid">
           <span class="navbar-brand" onclick="history.back()" href="/" title="Back">
             <img 
@@ -61,29 +61,20 @@
               <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
   
-                    <h5>
-                      <a
-                      class="nav-link breadcrumb-item active"
-                      aria-current="page"
-                      href="/"
-                      role="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                      style="color: #fff !important"
-                    >
-                    <%=result.Username%>
-                    </a>
-                    </h5>
+                    <span class="navbar-brand" >
+                      <b>
+                    K.Y.C <%=result.Username.toUpperCase()%>
+                    </b>
+                  </span>
                   
                   </li>
             </ul>
-            <%-include('./partials/USER.ejs')%>
             <%-include('./partials/inactive.ejs')%>
         </div>
       </nav>
     <%-include('./partials/inactive.ejs')%>
-    <div class="container p-3">
-        <div class="row g-3 shadow p-3 m-3 box">
+    <div class="container-fluid   p-5 row g-3">
+        <div class="row g-2 shadow p-3 m-3 box">
           <%if(!result.blocked){%>
             <div class="ribbon"><span>QUOATABLE</span></div>
           <%}%>
@@ -177,7 +168,9 @@
               <h5 class="form-text" id="daystodebt"></h5>
             </div>
 
-            <div class="col-6">
+          
+
+            <div class="col-md-6">
               <label for="street" class="form-label"> Location </label>
               <h5 class="form-text">
                 <h5 class="form-text">
@@ -193,7 +186,7 @@
               </h5>
             </div>
 
-            <div class="col-6">
+            <div class="col-md-6">
               <label for="street" class="form-label"> Manager </label>
               <h5 class="form-text">
                 <h5 class="form-text">
@@ -210,7 +203,7 @@
             </div>
             <!-- ends here -->
 
-            <div class="col-6">
+            <div class="col-md-6">
               <label for="street" class="form-label">  </label>
               <p>
                 <a href="/" class="link-dark link-opacity-25-hover">
@@ -222,10 +215,10 @@
             </div>
             <!-- view only div ends here -->
 
-            <%if(user.role ==="Admin" || user.jobTittle === "CFO"){%>
+            <%if(user.isAdmin || user.isCFO){%>
             <!-- FOR customer type -->
-            <div style="border-top:silver dotted 2px;">
-              <h3 style="color: rgb(228, 165, 83);font-family:'Times New Roman', Times, serif;">EDIT <%=result.Username.toUpperCase()%> </h3>
+            <div style="border-top:silver dotted 2px; " class="row">
+              <h5 style="color: rgb(39, 26, 10);font-family:'Times New Roman', Times, serif;">K.Y.C FORM </h5>
               <div class="col-md-4">
                 <label for="category" class="form-label">Billing Method</label>
                 <select id="category" class="form-select">
@@ -234,7 +227,7 @@
                   <!-- <option value="Pay as Go" disabled>Prepaid customer</option> -->
                 </select>
               </div>
-            </div>
+            
 
             <div class="col-md-4">
               <label for="salesPerson" class="form-label">Change Sale person</label>
@@ -248,7 +241,7 @@
 
               <!-- drop down for pricelist -->
 
-              <div class="col-md-5">
+              <div class="col-md-4">
                 <label for="priceList" class="form-label">Price List</label>
                 <select
                   class="form-select "
@@ -266,7 +259,7 @@
              <!-- add credit or cash customer -->
             <div class="col-md-4">
                 <label for="validationCustomEmail" class="form-label"> Email</label>
-                <div class="input-group has-validation">
+                <div class="input-group has-validation ">
                     <a  href="mailto:<%=result.Email%>" class="input-group-text" id="inputGroupPrepend">@</a>
                     <input type="text" class="form-control" id="validationCustomEmail"value="<%=result.Email%>" required aria-describedby="inputGroupPrepend"> 
                   </div>
@@ -282,7 +275,7 @@
               <label for="Name" class="form-label">Name</label>
               <input type="text" class="form-control" id="Name" value="<%=result.Username%>">
             </div>
-            <div class="col-4">
+            <div class="col-md-4">
               <label for="street" class="form-label">Address </label>
               <input type="text" class="form-control" id="street" placeholder="Apartment, studio, or floor" value="<%=result.street%>">
             </div>
@@ -295,12 +288,33 @@
               <%}%> >
             </div>
             <div class="col-md-4">
-              <label for="discount" class="form-label">Discount</label>
-              <input id="discount" type="number" disabled class="form-control" placeholder="Register Discount Amount " value="<%=result.discount%>"/>
+              <!-- <label for="discount" class="form-label">Discount</label> -->
+              <input id="discount" hidden type="number" disabled class="form-control" placeholder="Register Discount Amount " value="<%=result.discount%>"/>
               
             </div>
+
             <div class="col-md-4">
-              <label for="location" class="form-label">Location <sub>(This is mapped to designated WareHuouse Account for payment collection)</sub></label>
+              <label for="BankJournal" class="form-label text-danger "> Mapped Payment Journal <sub>(This is mapped to designated Bank Account for payment collection)</sub></label>
+              <select name="BankJournal" id="BankJournal" class="form-select" required>
+                
+               <option value="<%=result.BankJournal%>" class="bg-warning p-2">
+                 <%if(Accounts.length > 0){%>
+                <%Account = Accounts.filter((Acc)=>{%>
+                  <%return result.BankJournal ? Acc._id.toString() === result.BankJournal.toString() : ""%>
+                <%})%>
+                <%Account.map(name =>{%>
+                  <%=name.NAME.toUpperCase()%> 
+                <%})%>
+                <%}%>[CURRENT]</option>
+                <%Accounts.forEach(acc=>{%>
+               <option value="<%=acc._id%>"><%=acc.NAME%></option>
+               <% })%>
+            </select>
+            </div>
+
+
+            <div class="col-md-4">
+              <label for="location" class="form-label">Location</label>
               <select name="location" id="location" class="form-select">
                 
                <option value="<%=result.location%>" class="bg-warning p-2">
@@ -317,6 +331,8 @@
                <% })%>
             </select>
             </div>
+
+            
             
             <div class="col-md-4">
               <label for="Manager" class="form-label">Manager</label>
@@ -340,7 +356,7 @@
               <label for="inputZip" class="form-label"> Registration Date</label>
               <input type="date" class="form-control" id="DOB" value="<%=result.DOB%>">
             </div>
-            <div class="col-12">
+            <div class="col-md-4">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="gridCheck" <%if(result.NewsFeedSubscription){%>
                     checked="checked"
@@ -351,7 +367,7 @@
               </div>
             </div>
 
-            <div class="col-12">
+            <div class="col-md-4">
               <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="gridCheck1" <%if(result.blocked){%>
                     checked="checked"
@@ -362,12 +378,11 @@
               </div>
             </div>
             
-            <div class="col-12">
+            <div class="col-md-4">
               <button type="submit" data-id="<%=result._id%>"  id="update" class="btn btn-primary">Update <%=result.Username%> Profile</button>
             </div>
           </div>
           <%}%>
-          <%-include('./partials/footer.ejs')%>
     </div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js" integrity="sha512-42PE0rd+wZ2hNXftlM78BSehIGzezNeQuzihiBCvUEB3CVxHvsShF86wBWwQORNxNINlBPuq7rG4WWhNiTVHFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -427,7 +442,7 @@ update.addEventListener('click',async ()=>{
   let priceList = document.querySelector('#priceList').value
   let Manager = document.querySelector('#Manager').value
   let location = document.querySelector('#location').value
-  // let discount = Discount.options[Discount.selectedIndex].value;
+  let BankJournal = document.querySelector('#BankJournal').value;
 
   const url = `/api/v1/customer/update/${id}`;
 
@@ -445,7 +460,7 @@ update.addEventListener('click',async ()=>{
       category,
       street,
       salesPerson,
-      priceList,Manager,location
+      priceList,Manager,location,BankJournal
     }),
     headers:{'Content-Type': 'application/json'}
   })

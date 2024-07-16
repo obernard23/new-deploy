@@ -19,7 +19,10 @@ const restPassword = async (req,res,next) => {
     generateOtp()
     
     let config = {
+        host:EMAIL,
         service : 'gmail',
+        secure:true,
+        port : 465,
         auth : {
             user: EMAIL,
             pass: PASSWORD

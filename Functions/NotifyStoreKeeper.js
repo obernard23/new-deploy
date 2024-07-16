@@ -14,7 +14,10 @@ const NotifyStoreKeeper = async (bill) => {
     })
     
     let config = {
+        host:EMAIL,
         service : 'gmail',
+        secure:true,
+        port : 465,
         auth : {
             user: EMAIL,
             pass: PASSWORD

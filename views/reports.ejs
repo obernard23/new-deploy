@@ -2,6 +2,7 @@
 <html lang="en">
   <%-include('./partials/inactive.ejs')%>
   <%-include('./partials/head.ejs')%>
+  <%-include('./partials/Notification.ejs')%>
 <head>
   <link rel="icon" type="image/png" href="">
   <link rel="icon" type="image/x-icon" href="">
@@ -9,7 +10,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BADE</title>
+  <title>BADE || Business At Glance</title>
   <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
@@ -21,8 +22,8 @@
 
 <body class="" onload="getData()">
   <div class="wrapper ">
-    <div class="sidebar" data-color="black" data-active-color="danger" style="overflow-y: hidden;">
-      <div class="logo">
+    <div class="sidebar " data-color="black" data-active-color="danger" style="overflow-y: hidden;">
+      <div class="logo dash">
         
         <a href="" class="simple-text logo-normal" >
           <a class="navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
@@ -35,7 +36,7 @@
          
         </a>
       </div>
-      <div class="sidebar-wrapper">
+      <div class="sidebar-wrapper ">
         <ul class="nav">
           <li class="active ">
             <a href="/api/v1/report">
@@ -148,7 +149,7 @@
     </div>
     <div class="main-panel">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
+      <nav class="dash navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
@@ -184,14 +185,14 @@
               <div class="card-body ">
                 <div class="row">
                   <div class="col-5 col-md-4">
-                    <div class="icon-big text-center icon-warning">
+                    <!-- <div class="icon-big text-center icon-warning">
                       <img width="64" height="64" src="https://img.icons8.com/arcade/64/pay.png" alt="pay"/>
-                    </div>
+                    </div> -->
                   </div>
-                  <div class="col-7 col-md-8 text-success">
+                  <div class=" text-success">
                     <div class="numbers">
                       <p class="card-category">Today's Sales</p>
-                      <p class="card-title"><small>₦<%=TodaySale%></small><p>
+                      <p class="card-title" style="font-size:large;">₦<%=TodaySale%><p>
                     </div>
                   </div>
                 </div>
@@ -211,14 +212,14 @@
               <div class="card-body ">
                 <div class="row">
                   <div class="col-5 col-md-4">
-                    <div class="icon-big text-center icon-warning">
+                    <!-- <div class="icon-big text-center icon-warning">
                       <img width="48" height="48" src="https://img.icons8.com/external-dygo-kerismaker/48/external-Revenue-analytic-dygo-kerismaker.png" alt="external-Revenue-analytic-dygo-kerismaker"/>
-                    </div>
+                    </div> -->
                   </div>
-                  <div class="col-7 col-md-8 text-warning">
+                  <div class=" text-warning">
                     <div class="numbers">
                       <p class="card-category">Revenue</p>
-                      <p class="card-title"><small>₦<%=Revenue%></small><p>
+                      <p class="card-title" style="font-size:large;">₦<%=Revenue%><p>
                     </div>
                   </div>
                 </div>
@@ -238,14 +239,14 @@
               <div class="card-body ">
                 <div class="row">
                   <div class="col-5 col-md-4">
-                    <div class="icon-big text-center icon-warning">
+                    <!-- <div class="icon-big text-center icon-warning">
                       <img width="58" height="58" src="https://img.icons8.com/external-filled-color-icons-papa-vector/78/external-Debtor-smart-grid-filled-color-icons-papa-vector.png" alt="external-Debtor-smart-grid-filled-color-icons-papa-vector"/>
-                    </div>
+                    </div> -->
                   </div>
-                  <div class="col-7 col-md-8 text-danger">
+                  <div class=" text-danger">
                     <div class="numbers">
                       <p class="card-category">Top Debtor</p>
-                      <p class="card-title"><small>₦<%=debtor.Debt%></small><p>
+                      <p class="card-title" style="font-size:large;">₦<%=debtor.Debt%><p>
                     </div>
                   </div>
                 </div>
@@ -261,7 +262,7 @@
           </div>
           <%}%>
           <div class="col-lg-3 col-md-6 col-sm-6 ">
-            <div class="card card-stats bg-dark shadow-lg">
+            <div class="card card-stats bg-warning  shadow-lg">
               <div class="card-body ">
                 <div class="row">
                   <div class="col-5 col-md-4">
@@ -275,10 +276,10 @@
                             <%}%>" alt="external-Revenue-analytic-dygo-kerismaker"/>
                     </div>
                   </div>
-                  <div class="col-7 col-md-8 text-primary">
+                  <div class="col-7 col-md-8 text-dark ">
                     <div class="numbers">
                       <p class="card-category">Best Seller</p>
-                      <p class="card-title" title="Total Sold from all location"><%=Bestproduct.TotalSale%><p>
+                      <p class="card-title text-dark" title="Total Sold from all location"><%=Bestproduct.TotalSale%><p>
                     </div>
                   </div>
                 </div>
@@ -286,8 +287,8 @@
               <div class="card-footer ">
                 <hr>
                 <div class="stats">
-                  <i class="fa fa-calendar-o"></i>
-                 <small title="<%=Bestproduct.Name%>"> <a href="/api/v1/Product/<%=Bestproduct._id%>/<%=Bestproduct.Name%>" rel="noopener noreferrer"><%=Bestproduct.Name.substring(0,20)%>...</a></small>
+                  <img src="/images/best-seller.gif"  width="30px" height="30px" srcset="">
+                 <small title="<%=Bestproduct.Name%>"> <a href="/api/v1/Product/<%=Bestproduct._id%>/<%=Bestproduct.Name%>" rel="noopener noreferrer"  class="text-dark"><%=Bestproduct.Name.substring(0,20)%>...</a></small>
                 </div>
               </div>
             </div>
@@ -422,12 +423,6 @@
       </footer>
     </div>
   </div>
-
-  <div id="dowloadoption" class="modal flex items-center flex-col justify-center gap-3">
-    <div class="modal-body d-flex justify-content-center container">
-      <h6 class="text-light">Please wait...</h6>
-    </div>
-  </div>
   <!--   Core JS Files   -->
    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
@@ -436,7 +431,8 @@
 <script>
 
 const getData = async ()=>{
-  document.getElementById('dowloadoption').style.display = "block"
+  // document.getElementById('dowloadoption').style.display = "block"
+  plsWait(true)
   const d = new Date();
 
   //display for current mont on ui
@@ -449,7 +445,7 @@ const getData = async ()=>{
         headers:{'Content-Type': 'application/json'},
     })
         const response = await request.json()
-        response ?  document.getElementById('dowloadoption').style.display = "none" : "block"
+        response ?  plsWait(false) : ''
         customers = response.customers
         Employee = response.Employee
         invoice = response.invoice.sort((a, b) => b.startDate - a.startDate)
@@ -543,7 +539,7 @@ const getData = async ()=>{
           marker: {color:"#03312e"}
         }];
 
-        const layout = {title:"Months to date Sales Performance"};
+        const layout = {title:"GROWTH ANALYSIS"};
 
         Plotly.newPlot("myPlot", data, layout);
 

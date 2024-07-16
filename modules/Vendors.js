@@ -42,7 +42,8 @@ const VendorSchema = new mongoose.Schema({
     },
     Balance:{
         type:Number,
-        defauit:0
+        defauit:0,
+        required:true
     }
 
 },{timestamps:true})

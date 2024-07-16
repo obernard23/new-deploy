@@ -10,11 +10,16 @@ const NotifyAccountantPR = async (req,res) => {
     
     const wareHous = await WHouse.findById(req.body.WHID)
    let date = new Date()
-   await Employees.find({jobTittle:'Accountant'})
+   await Employees.find({$and: [
+    { status: "active" },
+    { isAccountant:true}]})
     .then((Accontant) => {
         Accontant.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD

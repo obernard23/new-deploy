@@ -11,11 +11,16 @@ const NotifyScrap = async (req,res,next) => {
     let date = new Date()
    const WHous =  await WHouse.findById(req.body.WHIDS)//find bill 
    virtualStorageQty = await Product.findById(req.params.id)
-   await Employee.find({jobTittle:'MD'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { isCFO:true}]})
     .then((MD) => {
         MD.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD

@@ -4,19 +4,25 @@ const {PASSWORD,EMAIL,ERPSmtpName,url} = require('../.env');
 const {WHouse} = require('../modules/warehouse');
 const Employee = require('../modules/Employees');
 const bills = require("../modules/Bills");
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
 const NotifyCFORetruns = async (req,res) => {
   const Bill = await bills.findById(req.body.BillId)
-  console.log(Bill)
+
     let date = new Date()
    const WHous =  await WHouse.findById( req.body.WHId)//find bill 
-   await Employee.find({jobTittle:'CFO'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { isCFO:true}]})
     .then((CFO) => {
         CFO.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -25,6 +31,12 @@ const NotifyCFORetruns = async (req,res) => {
             }
         
             let transporter = nodemailer.createTransport(config);
+
+            usernotification({ 
+                Title:`Return Request from ${WHous.WHName} / ${req.body.storeKeeper} to Review.`,
+                url:``,
+                userId:person._id
+            })
         
             let MailGenerator = new Mailgen({
                 theme: "salted",
@@ -62,7 +74,7 @@ const NotifyCFORetruns = async (req,res) => {
                             button: {
                                 color: '#22BC66',
                                 text: 'View Request',
-                                // link: ${url}/api/v1/invoice/${result._id}`
+                                // link: `${url}/api/v1/${result._id}/Returns`
                             }
                         }
                     ],

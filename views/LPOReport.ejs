@@ -35,7 +35,7 @@
 <body class=""  onload="getData()">
   <div class="wrapper ">
     <div class="sidebar" data-color="black" data-active-color="danger" style="overflow-y: hidden;">
-      <div class="logo">
+      <div class="dash logo">
         
         <a href="" class="simple-text logo-normal" >
           <a class="navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
@@ -156,7 +156,7 @@
     </div>
     <div class="main-panel  h-100">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
+      <nav class="dash navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
@@ -263,7 +263,7 @@
               <div class="card-footer "><hr> 
                 <h6 id="error"></h6>
                 <button class="btn btn-warning d-none mb-2" id="dumpBtn">Generate and Export Dump </button>
-                <button class="btn btn-primary d-none mb-2" id="download">download to xlxs</button>
+                <button class="btn btn-primary d-none mb-2" id="downloadSerach">Download Result to xlxs</button>
                 <!-- display result here -->
                 <table class="w-100 d-none">
                    
@@ -274,8 +274,9 @@
                         <td  class="border p-1">QTY</td>
                         <td  class="border p-1">LPO date</td>
                         <td  class="border p-1">Remark</td>
+                        <td  class="border p-1">Discount recieved</td>
                         <td  class="border p-1">Returned Value</td>
-                        <td  class="border p-1">LPO Value</td>
+                        <td  class="border p-1">Net</td>
                     </thead>
                     <tbody id="payment"></tbody>
                 </table>
@@ -310,6 +311,25 @@
 
       let Dumpdata = []
       let Transferdata = []
+      let OutTrasnferdata = []
+      let searchResult = []
+
+      const getFilter = (data)=>{
+
+        const getVendor = function (element){
+          selectedVendor =  response.vendor.filter(vendor =>{
+            return vendor._id == element
+          })
+          return selectedVendor[0].Name
+         }
+
+        searchResult = []
+        data.forEach((element)=>{
+          searchResult.push({Refrence:element.billReferenceNo,Vendor:getVendor(element.Vendor),Order_QTY:element.orders.length,
+          date:element.recievedDate,Remark:element.Remarks,Discount:element.discount,Returned_value:element.ReturnQty,Gross:element.subTotal,Net:element.grandTotal})
+        })
+        
+      }
 
       let d = new Date()
        let year = d.getFullYear(); 
@@ -327,7 +347,7 @@
         response ? document.getElementById('loading').style.display='none' :''
         Employee = response.Employee
         LPO = response.LPO.sort((a, b) => b.startDate - a.startDate)
-        wareHouse = response.WH
+        
         // get report for lpo dash board
         // for sales on sale monthly chart
         const januaryInvoice = LPO.filter((bill)=>{
@@ -393,7 +413,7 @@ const data = [{
   marker: {color:"#03312e"}
 }];
 
-const layout = {title:"Month on Month Local Purchase Summary"};
+const layout = {title:"Month on Month Purchase Summary"};
 
 Plotly.newPlot("myPlot", data, layout);
 
@@ -415,18 +435,28 @@ Plotly.newPlot("myPlot", data, layout);
       };
 
      selectedLocation = response.LPO.filter((invoice)=>{
-   
-      const dates = generateDates(new Date(dataForm.Enddate.value),new Date(dataForm.Startdate.value))
-            const formattedDate = dayjs(invoice.recievedDate).format("D-MMM-YYYY");
-            return dates.includes(formattedDate) && invoice.WHID.toString() === dataForm.WareHouse.value.toString() && dataForm.Vendor.value === invoice.Vendor
-    })
+       const dates = generateDates(new Date(dataForm.Enddate.value),new Date(dataForm.Startdate.value))
+       const formattedDate = dayjs(invoice.recievedDate).format("D-MMM-YYYY");
+       return dates.includes(formattedDate) && invoice.WHID.toString() === dataForm.WareHouse.value.toString() && dataForm.Vendor.value === invoice.Vendor && invoice.status === "POSTED TO WAREHOUSE"
+      })
 
+      // for xlsx donload of searched po
+      getFilter(selectedLocation)
+  
+
+    // in bound transfers
     transfers = response.Transfer.filter((TRNS)=>{
       const dates = generateDates(new Date(dataForm.Enddate.value),new Date(dataForm.Startdate.value))
-            const formattedDate = dayjs(TRNS.recievedDate).format("D-MMM-YYYY");
-            return TRNS.to.toString() === dataForm.WareHouse.value.toString() || TRNS.from.toString() === dataForm.WareHouse.value.toString() && dates.includes(formattedDate) && TRNS.storeKeeperApproval
+      const formattedDate = dayjs(TRNS.recievedDate).format("D-MMM-YYYY");
+      return TRNS.to.toString() === dataForm.WareHouse.value.toString()  && dates.includes(formattedDate) && TRNS.storeKeeperApproval && TRNS.status === "posted to ware house"
     })
 
+    // outbound transfers
+    OutTransfers = response.Transfer.filter((TRNS)=>{
+      const dates = generateDates(new Date(dataForm.Enddate.value),new Date(dataForm.Startdate.value))
+      const formattedDate = dayjs(TRNS.recievedDate).format("D-MMM-YYYY");
+      return TRNS.from.toString() === dataForm.WareHouse.value.toString() && dates.includes(formattedDate) && TRNS.storeKeeperApproval && TRNS.status === "posted to ware house"
+    })
     
 
     let count =  selectedLocation.length - selectedLocation.length + 1
@@ -436,23 +466,49 @@ Plotly.newPlot("myPlot", data, layout);
     if(selectedLocation.length > 0){
       Dumpdata = []
       Transferdata = []
+      OutTrasnferdata= []
         let tbody = document.getElementById('payment')
         document.getElementById('error').innerText = ''
         document.getElementById('dumpBtn').classList.remove('d-none')
-        document.getElementById('download').classList.remove('d-none')
+        document.getElementById('downloadSerach').classList.remove('d-none')
         tbody.innerHTML =''
         tHead.classList.remove('d-none')
+
+        const getVendor = function (element){
+          selectedVendor =  response.vendor.filter(vendor =>{
+            return vendor._id == element
+          })
+          return selectedVendor[0].Name
+         }
+
+         const getLocation = function (element){
+          selectedlocation =  response.WH.filter(location =>{
+            return location._id == element
+          })
+          return selectedlocation[0].WHName
+         }
 
            //POPULATE XLSX FOR TRANSFER
         transfers.forEach(trans =>{
             //  populate data for xlsx sheet
             for (let index = 0; index < trans.orders.length; index++) {
               const products = trans.orders[index];
-              
               Transferdata.push({
-              batch:products.BatchNo,sku:products.item.productName ? products.item.productName : products.item.Name,vendor:products.item.vendorName,
+              batch:products.item.BatchNo,sku:products.item.productName ? products.item.productName : products.item.Name,vendor:products.item.vendorName,
               productCategory:products.item.category,scale:products.item.UOM,waybillNo:trans.billReferenceNo,Qty:products.Qty,
-              ExpiryDate:products.ExpDate,Unit_Price:products.item.VendorPrice,SKU_Code:products.item.ADCcode
+              ExpiryDate:products.ExpDate,Unit_Price:products.item.VendorPrice,SKU_Code:products.item.ADCcode,recieved_Date:trans.recievedDate,Transfer_Date:trans.transferedDate,In_Bound:getLocation(trans.to),Out_Bound:getLocation(trans.from)
+              })
+            }
+          })
+
+          OutTransfers.forEach(trans =>{
+            //  populate data for xlsx sheet
+            for (let index = 0; index < trans.orders.length; index++) {
+              const products = trans.orders[index];
+              OutTrasnferdata.push({
+              batch:products.item.BatchNo,sku:products.item.productName ? products.item.productName : products.item.Name,vendor:products.item.vendorName,
+              productCategory:products.item.category,scale:products.item.UOM,waybillNo:trans.billReferenceNo,Qty:products.Qty,
+              ExpiryDate:products.ExpDate,Unit_Price:products.item.VendorPrice,SKU_Code:products.item.ADCcode,recieved_Date:trans.recievedDate,Transfer_Date:trans.transferedDate,Out_Bound:getLocation(trans.from),In_Bound:getLocation(trans.to)
               })
             }
           })
@@ -469,29 +525,29 @@ Plotly.newPlot("myPlot", data, layout);
         let lpoValue = document.createElement('td')
         let Orders = document.createElement('td')
         let ReturnQty = document.createElement('td')
-
+        let discountRecieved = document.createElement('td') 
+        
         //  populate data for xlsx sheet
         for (let index = 0; index < element.orders.length; index++) {
-        const products = element.orders[index];
-        Dumpdata.push({batch:products.BatchNo,sku:products.item.productName ? products.item.productName : products.item.Name,vendor:products.item.vendorName,
-          productCategory:products.item.category,scale:products.item.UOM,waybillNo:element.billReferenceNo,Qty:products.Qty,
-          LpoDate:element.recievedDate,ExpiryDate:products.ExpDate,Remark:element.Remarks,Unit_Price:products.item.VendorPrice,SKU_Code:products.item.ADCcode
-        })
+          const products = element.orders[index];
+          Dumpdata.push({batch:products.BatchNo,sku:products.item.productName ? products.item.productName : products.item.Name,vendor:products.item.vendorName,
+            productCategory:products.item.category,scale:products.item.UOM,waybillNo:element.billReferenceNo,Qty:products.Qty,
+            LpoDate:element.recievedDate,ExpiryDate:products.ExpDate,Remark:element.Remarks,Unit_Price:products.item.VendorPrice,SKU_Code:products.item.ADCcode
+          })
 
         }
 
-   
-        
         // assign element to variable
         counter.innerText = `${count++}`
         LpoNo.innerText = element.billReferenceNo
         LpoNo.href = `/api/v1/Purchase/bill/${element._id}`
         lpoDate.innerText = element.recievedDate
-        lpoValue.innerText = `₦${parseInt(element.subTotal - element.ReturnQty)}`
+        lpoValue.innerText = `₦${parseInt(element.grandTotal)}`
         Orders.innerText = element.orders.length
         Remarks.innerText = element.Remarks ? `${element.Remarks.substring(0,15)}...`: ''
+        discountRecieved.innerText =`₦${element.discount}`
         Remarks.setAttribute('title', element.Remarks)
-        Vendor.innerText = element.Vendor
+        Vendor.innerText = getVendor(element.Vendor)
         ReturnQty.innerText = `₦${element.ReturnQty}`
 
         // add style 
@@ -504,6 +560,7 @@ Plotly.newPlot("myPlot", data, layout);
         tr.appendChild(Orders)
         tr.appendChild(lpoDate)
         tr.appendChild(Remarks)
+        tr.appendChild(discountRecieved)
         tr.appendChild(ReturnQty)
         tr.appendChild(lpoValue)
         tbody.append(tr)
@@ -511,42 +568,83 @@ Plotly.newPlot("myPlot", data, layout);
         }else{
             Dumpdata = []
             Transferdata = []
+            OutTrasnferdata = []
             document.getElementById('error').innerText = "No Matching Data Found"
         }
 })
 
-
-
-  //download the data from lpo period selected to dump xlxs sheet
+//download the data from lpo period selected to dump xlxs sheet
   const dumpBtn = document.getElementById('dumpBtn')
   dumpBtn.addEventListener('click',(e) =>{
-
+    const WareHouseSelected = document.getElementById('WareHouse').value
+    wareHouse = response.WH.filter((a) => {
+      return a._id === WareHouseSelected.toString()
+    })
     const saveAsExcel = (Buffer,filename)=>{
         const data = new Blob([Buffer],{type:EXCEL_TYPE})
-        saveAs(data,filename+'LPOdump' + EXCEL_EXTENSION)
+        saveAs(data,filename+`${wareHouse[0].WHName.toUpperCase()} LPO_dump & Transfers` + EXCEL_EXTENSION)
       }
   
     const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
         const EXCEL_EXTENSION = '.xlsx';
         const XLSXDOWNLOAD = document.getElementById('XLSX')
         
-        const  DownloadXLSX = async(Dumpdata)=>{
+        const  DownloadXLSX = async(Dumpdata,Transferdata,OutTrasnferdata)=>{
         const worksheet = XLSX.utils.json_to_sheet(Dumpdata);
         const TrasnferSheet =  XLSX.utils.json_to_sheet(Transferdata);
+        const OutTrasnferSheet =  XLSX.utils.json_to_sheet(OutTrasnferdata);
             const workbook = {
                 Sheets: {
                     'LPO_DUMP' : worksheet,
-                    'TRANSFERS':TrasnferSheet
+                    'IN-TRANSFERS':TrasnferSheet,
+                    'OUT-TRANSFERS':OutTrasnferSheet
                 },
-                SheetNames: ['LPO_DUMP','TRANSFERS']
+                SheetNames: ['LPO_DUMP','IN-TRANSFERS', 'OUT-TRANSFERS']
             };
             const excelBuffer = XLSX.write(workbook, {bookType: 'xlsx', type: 'array'});
 
             saveAsExcel(excelBuffer, '');
         }
-        DownloadXLSX(Dumpdata)
-   
+        DownloadXLSX(Dumpdata,Transferdata,OutTrasnferdata)
   })
+
+
+
+  // download search result btn
+  document.getElementById('downloadSerach').addEventListener('click',()=>{
+    
+    const WareHouseSelected = document.getElementById('WareHouse').value
+
+    wareHouse = response.WH.filter((a) => {
+      return a._id === WareHouseSelected.toString()
+    })
+
+    const saveAsExcel = (Buffer,filename)=>{
+        const data = new Blob([Buffer],{type:EXCEL_TYPE})
+        saveAs(data,filename+`${wareHouse[0].WHName.toUpperCase()} LPO` + EXCEL_EXTENSION)
+      }
+  
+    const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
+        const EXCEL_EXTENSION = '.xlsx';
+        const XLSXDOWNLOAD = document.getElementById('XLSX');
+        
+        const  DownloadXLSX = async(searchResult)=>{
+        const worksheet = XLSX.utils.json_to_sheet(searchResult);
+        
+            const workbook = {
+                Sheets: {
+                    'LPO' : worksheet,
+                },
+                SheetNames: ['LPO']
+            };
+            const excelBuffer = XLSX.write(workbook, {bookType: 'xlsx', type: 'array'});
+
+            saveAsExcel(excelBuffer, '');
+        }
+        DownloadXLSX(searchResult)
+  });
+
+  
 
 }
     

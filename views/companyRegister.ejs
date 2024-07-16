@@ -62,6 +62,10 @@
             <input type="text" class="form-control" id="inputAddress" required placeholder="1234 Main St" name="Address">
           </div>
           <div class="col-6">
+            <label for="ShopAddress" class="form-label">Shop Address</label>
+            <input type="text" class="form-control" id="ShopAddress" required placeholder="1234 Main St" name="ShopAddress">
+          </div>
+          <div class="col-6">
             <label for="inputAddress2" class="form-label">Business Tel..</label>
             <input type="tel" class="form-control" id="inputAddress2" required placeholder="Tel..." name="Tel">
           </div>
@@ -90,6 +94,10 @@
               <input type="file" class="form-control" id="files" required name="CompanyLogo">
               <input type="hidden" name="imageLoader" id="imageLoader">
               <input type="hidden" name="user" value="<%=user._id%>"> 
+            </div>
+            <div class="col-md-6">
+              <label for="InvoicePolicy" class="form-label">Invoicing policy</label>
+              <textarea type="text" class="form-control" id="InvoicePolicy" required name="InvoicePolicy"></textarea>
             </div>
          
           <div class="col-12">
@@ -124,7 +132,9 @@
                 CompayState:companyform.CompayState.value,
                 CompayZip:companyform.CompayZip.value,
                 CompayLogo:companyform.imageLoader.value,
-                AnniversiryDate:companyform.Anniversiry.value
+                AnniversiryDate:companyform.Anniversiry.value,
+                InvoicePolicy:companyform.InvoicePolicy.value,
+                ShopAddress:companyform.ShopAddress.value
             }),
             headers: {"content-type": "application/json"}
 

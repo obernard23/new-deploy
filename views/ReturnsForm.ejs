@@ -364,32 +364,15 @@
           <table cellpadding="0" cellspacing="0">
             <tr class="heading font-bold">
               <td  >Product</td>
-              <td  >Invoiced QTY</td>
-              <td  >Scale</td>
-              <!-- <td  >Unit Price ₦</td> -->
+              <!-- <td  >Invoiced QTY</td> -->
+              <td  >CRTL</td>
+              <td  >ROLL</td>
               <td  >Total ₦</td>
             </tr>
             <tbody  class="item" id="returns"></tbody>
               <!-- for rturn product request -->
               <tr >
-                <form action="">
-                <td>
-                 
-                 
-                  <div class="col-md-7">
-                    <label for="pricelist" class="form-label">Products from Invoice</label>
-                    <select
-                      class="form-select "
-                      id="products"
-                      aria-describedby="validationServer04Feedback"
-                      
-                    >
-                    <option>Choose...</option>
-                    <optgroup id="product" label="Invoice Product" > </optgroup>
-                    </select>
-                    </div>
-                </td>
-             </form>
+               
               </tr>
 
             </tbody>
@@ -520,10 +503,8 @@
            refDis.innerText = `Invoice ${data.billReferenceNo} Product`
            refDis.classList.add('bg-success')
            // display order in this bill
-           let product  = document.getElementById('product')
            let displayTable = document.getElementById('returns')
            displayTable.innerHTML = ""
-            product.innerHTML = ""
 
             data.orders.forEach(order => {
 
@@ -536,7 +517,7 @@
 
            td1.innerHTML = order.item.Name
            td2.innerHTML = order.Qty
-           td3.innerHTML = order.scale
+           td3.innerHTML = order.ROLQTY
           //  td4.innerHTML = `₦${order.priceListPrice}`
            td5.innerHTML = `₦${order.total}`
 

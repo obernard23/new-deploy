@@ -33,12 +33,12 @@
 </head>
 
 <body class=""  onload="getData()">
-  <div class="wrapper ">
-    <div class="sidebar" data-color="black" data-active-color="danger" style="overflow-y: hidden;">
-      <div class="logo">
+  <div class=" wrapper ">
+    <div class=" sidebar" data-color="black" data-active-color="danger" style="overflow-y: hidden;">
+      <div class="dash logo">
         
         <a href="" class="simple-text logo-normal" >
-          <a class="navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
+          <a class=" navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAVe0lEQVR4nO1de3RV1Zk/tgvrtJ2RP8bprM60IsvV6XLVtnbWaisCQwyvICbyCCEhEAR5PxIgPJIAImgFCiZIeQQiiKAJqOEhQoJIKC81g4EEEwQDBsiTJDd370todWa6Z/1Ozrl3n3PPPo97TwLVu9f6FneFc863v+/be397f68tSZEWaZEWaZEWaZEWaZEWaZEWaZEWaW60lpaWf/L5fAmU0jcppR8TQmoJIV9TStsopZcJIYWEkHltbW0PhYOHMfYdr9c7gFK6hhBySsFzWwH8Pkkp/aPP5+uPZ8PB5fV6exJC0gkhe0EDaA
             FNwAMaKaW7fD7fKNAu3S3t9u3bP6GUbieEfEUpZVZACPkbIeRDSmlvJ3gYY9+DQAkhN+zgUXBdJ4TMYYzd6wQXpbQPIaQEfbWJ56+U0tfa29v/XbpTjTH2XULIckLIX+wyyICQ/La2tu52GEQpvRIqHkpptZ0BgL4QQgrCoAezdBl4I3Vl83g891NKD4fBIB6u+ny+X4hwEULmEkL+J1w8+AYhJE2Ex+fzPYq+uEGTx+Mp6rJlDMIghFxwSRgqs276fL5f6nFRSpe4iUeBLD2eW7du/YoQ0uwmnsbGxktXrly5v1OFASVJKX1P1Inr1+rZzteL2Oxp69iIpxez/n3msGeGZLLnxq1im9bvZZWfXTETSsOtW7f+VcXl9XqTRM96vV5WfPhj9sLibWxM/HI2KGqeDEnxy9kLS7axI0
             WfMK+XmOEap+Lx+Xz/oihpw2crL1SzjesLZRpAC2gCbaBx144iduN6vRBPdXV1aXx8/D90mkCgM4wQt7V52ZaN+9jgqHTW7/HZQoh6IpUtX7qd1dU2iogoAh5K6c8ppe1Gz5w6eZ6lJL5kigcwPukP7PTJchGeW4SQnym4jhg9U3ujUe4r+myGBzRv2bRf5oHRd44ePbpLkqRurgujvb3934yY1NBwk6VOX2fJIB4Shj0vjzwBs4ZTSg8Z/d9bO4vZk0+k2cYT3TuNvbXziAjPQUrpSKP/++xCtdxHJzSlzXhV5oX+Wx6P5+sRI0aMkiTpHlcFgq2t0czQCyNm4FI2buIONiP9EEvNOsZmLihmz07NZ3FPv6x5bmTsEnatps6IUS1GTNr37p+1zO4zjyUkbmRTUvex2RkfyjBl9j6WkLRR/
@@ -156,7 +156,7 @@
     </div>
     <div class="main-panel  h-100">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
+      <nav class="dash navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
@@ -171,6 +171,7 @@
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <form>
               <div class="input-group no-border">
+                
                 <input type="text" value="" class="form-control" placeholder="Search...">
                 <div class="input-group-append">
                   <div class="input-group-text">
@@ -388,9 +389,9 @@
 
     for (let index = 0; index < invoice.orders.length; index++) {
         const element = invoice.orders[index];
-
         data.push({
         batch:element.BatchId ? element.BatchId :'',
+        Trace:element.returnId === 0 ? "": element.returnId,
         sku:element.item.Name,
         Vendor:vendor(element.item.Vendor),
         productCategory:element.item.category,
@@ -401,26 +402,29 @@
         Channel:invoice.priceList,
         Invoicer:invoice.RaiseBy,
         ACD_CODE:element.item.ACDcode, 
-        Qty: element.Qty,
+        CRTN: element.Qty,
+        ROLL:element.ROLQTY ? element.ROLQTY : 0,
         vat:element.item.VAT,
         unitAmount:element.priceListPrice,
         total:invoice.billStatus === "Cancelled" ? 0 : element.Qty * element.priceListPrice   ,
         invDate:formatter.format(new Date(invoice.DELIVERYDATE)),
-        Promotion:element.promotionData ? element.promotionData : 0,
-        returened_sku:invoice.billStatus === "Cancelled" ? element.item.Name :'',
-        returenedQty:invoice.billStatus === "Cancelled" ? element.Qty :0,
+        promo_unit: element.promotionData ? Math.round(element.promotionData / element.Qty) : 0,
+        Promo_sum:element.promotionData ? element.promotionData : 0,
+        R_sku:invoice.billStatus === "Cancelled" ? element.item.Name :'',
+        R_CRTN:invoice.billStatus === "Cancelled" ? element.Qty :0,
+        R_ROLL:invoice.billStatus === "Cancelled" ? element.ROLQTY :0,
         salesPerson:saleaperson(invoice.salesPerson),
         Customer:invoice.customerName,
         InvoiceTotal:invoice.grandTotal,
         Address:customer(invoice.customer),
         customerLocation:customerLocation(invoice.customer),
-        CustomerId:invoice.customer,
         customerCategory:CustomerType(invoice.customer),
         OrderDate:formatter.format(new Date(invoice.startDate)),
-        Month:formatter.format(new Date(invoice.startDate)).substring(0,1),
-        Year:formatter.format(new Date(invoice.startDate)).substring(6,20),
+        Month:moment(formatter.format(new Date(invoice.startDate))).format('MMMM Do YYYY, h:mm:ss a').substring(0,3),
+        Year:moment(formatter.format(new Date(invoice.startDate))). year(),
         ExpiryDate:element.ExpiryDate ? element.ExpiryDate :'',
-        invDiscount:invoice.discount
+        invDiscount:invoice.discount,
+
     })
        }
        if(data.length > 0) {
@@ -460,9 +464,9 @@
         const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = {
                 Sheets: {
-                    'data' : worksheet
+                    'Sales_Dump' : worksheet
                 },
-                SheetNames: ['data']
+                SheetNames: ['Sales_Dump']
             };
             const excelBuffer = XLSX.write(workbook, {bookType: 'xlsx', type: 'array'});
             saveAsExcel(excelBuffer, '');

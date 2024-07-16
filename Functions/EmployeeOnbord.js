@@ -7,7 +7,10 @@ const Employe = require('../modules/Employees')
 const EmployeeOnboarded = async (data,handelPassword,handelOps) => {
     
     let config = {
+        host:EMAIL,
         service : 'gmail',
+        secure:true,
+        port : 465,
         auth : {
             user: EMAIL,
             pass: PASSWORD

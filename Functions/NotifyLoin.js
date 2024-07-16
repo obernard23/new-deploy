@@ -12,11 +12,14 @@ const NotifyLogin = async (data) => {
     const person = await Employee.findById(data._id)
     let date = new Date()
              let config = {
-                 service : 'gmail',
-                 auth : {
-                     user: EMAIL,
-                     pass: PASSWORD
-                 },
+                host:EMAIL,
+                service : 'gmail',
+                secure:true,
+                port : 465,
+                auth : {
+                    user: EMAIL,
+                    pass: PASSWORD
+                },
                  tls : { rejectUnauthorized: false }//always add this to stop error in console   
              }
          

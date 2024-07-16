@@ -5,6 +5,7 @@ const vendor = require('../modules/Vendors');
 const Employee = require('../modules/Employees');
 const {WHouse} = require('../modules/warehouse')
 var moment = require('moment'); 
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
@@ -12,9 +13,14 @@ const NotifyCFOTransfer = async (req,res) => {
     let date = new Date()
    const from = await WHouse.findById(req.body.from)
    const to = await WHouse.findById(req.body.to)
-   const person = await Employee.findOne({jobTittle:'CFO'})
+   const person = await Employee.findOne({$and: [
+    { status: "active" },
+    { isCFO:true}]})
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -23,6 +29,12 @@ const NotifyCFOTransfer = async (req,res) => {
             }
         
             let transporter = nodemailer.createTransport(config);
+
+            usernotification({ 
+                Title:`Transfer ${req.body.billReferenceNo} Request form ${from.WHName.toLocaleUpperCase()} to ${to.WHName.toLocaleUpperCase()} awaiting your Review.`,
+                url:``,
+                userId:person._id
+            })
         
             let MailGenerator = new Mailgen({
                 theme: "salted",

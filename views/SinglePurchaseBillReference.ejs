@@ -305,32 +305,54 @@
         <div class="d-flex justify-content-between">
           <h2>" GRN/<%=Singlebill.billReferenceNo%>/<%=vendor.Name.substring(0,3).toUpperCase()%>"</h2>
         </div>
-        <%if(Singlebill.status !== 'Declined' || !Singlebill.StoreKeeperConfirmation){%>
+
+        
+
+        <%if(Singlebill.status === 'Pending'){%>
+          <div class="d-flex justify-content-between">
+              <button class="btn btn-success <% if ( !user.allowInternalTransfers  ) { %>
+                d-none
+               <% } %>" <% if ( !user.allowInternalTransfers  ) { %>
+               disabled="disabled"
+              <% } %> onclick="AccountantAccept('Accountant Accept')">Accountant Accept LPO</button>
+              <button class="btn btn-danger <% if ( !user.allowInternalTransfers ) { %>
+                d-none
+               <% } %>" <% if ( !user.allowInternalTransfers ) { %>
+                disabled="disabled" 
+               <% } %> onclick="AccountantAccept('Accountant Reject')">Accountant Reject LPO</button>
+          </div>
+        <%}%>  
+
+
+
+        <%if(Singlebill.status === 'Accountant Accept'){%>
+
+        <%if(Singlebill.status === 'Accountant Accept' || !Singlebill.StoreKeeperConfirmation){%>
          
-          <%if( user.jobTittle === "CFO" && Singlebill.status !== 'POSTED TO WAREHOUSE' ){%>
+          <%if( user.isCFO || user.isAdmin && Singlebill.status === 'Accountant Accept' ){%>
             <button class="btn btn-dark"  onclick="document.getElementById('myModal').style.display='block'">CFO ACTION </button>
           <%}%> 
+        
+        <!-- accountant if clause ends here -->
+        <%}%>
+
+
+        <%}%>
+
+            <!-- BUTTON FOR Storekeper -->
         <div class="d-flex justify-content-between">
-          <%if( user._id.toString() === WH.StoreKeeper._id.toString() && Singlebill.paymentStatus ==="Paid" && !Singlebill.StoreKeeperConfirmation ){%>
+          <%if( user._id.toString() === WH.StoreKeeper._id.toString() && Singlebill.status ==="Approved" && !Singlebill.StoreKeeperConfirmation ){%>
             <button class="btn btn-success" id="StoreApproveBtn"  onclick="StoreApprove()">STORE KEEPER APPROVAL</button>
             <button class="btn btn-danger"  onclick="StoreDeclined()">STORE KEEPER REJECT</button>
           <%}%> 
         </div>
 
-        <!-- <%if(user.role === "Admin" ||user.jobTittle === "CFO" ){%>
-        <div class="d-flex justify-content-between">
-          <%if(Singlebill.StoreKeeperConfirmation ){%>
-            <button class="btn btn-warning"  onclick="">Cancel LPO</button>
-            <%}%> 
-        </div>
-        <%}%>  -->
 
-        <%}%>
         <div class="form-label bg-warning text-dark translate-end badge rounded-pill shadow w-contain start-50">
            <b><%=Singlebill.status%></b>
         </div>
         <!-- show to only listed users -->
-        <%if(user.role === "Admin" ||user.jobTittle === "CFO" || user.jobTittle === "Invoicer"){%>
+        <%if(user.isAdmin ||user.isCFO || user.raiseLpo || user.isAccountant){%>
         <div class="intro-table">
  
           <div class="intro-form  intro-form-item d-flex intro-table-title align-items-start  justify-content-evenly">
@@ -361,7 +383,7 @@
               </div>
 
               <div class="col-md-7 ">
-                <label for="AccountNumber" class="form-label">Bank Jornal</label>
+                <label for="AccountNumber" class="form-label">Bank Journal</label>
                 <h6 class="from-text"><%=Singlebill.bankAccount%></h6>
               </div>
 
@@ -390,7 +412,8 @@
           <table cellpadding="0" cellspacing="0">
             <tr class="heading font-bold">
               <td  >Product</td>
-              <td  >QTY</td>
+              <td>  Tracebility</td>
+              <td  >Crtn</td>
               <td  >Scale</td>
               <td  >Expiration date</td>
               <td  >Unit Price</td>
@@ -401,6 +424,7 @@
                 <% Singlebill.orders.forEach(bill=>{%>
               <tr class="item">
                 <td  ><%=bill.item.Name ? bill.item.Name :bill.item.productName%></td>
+                <td  ><%=bill.Status ? bill.Status : ''%></td>
                 <td  ><%=bill.Qty%></td>
                 <td  ><%=bill.item.UMO ? bill.item.UMO :bill.item.UOM%></td>
                 <td  ><%=bill.ExpDate%></td>
@@ -474,13 +498,15 @@
     <%-include('./partials/footer')%>
 
      <!-- The Modal -->
-     <div id="myModal" class="modal flex items-center flex-col justify-center gap-3 shadow">
+     <div id="myModal" class="modal flex items-center flex-col justify-center gap-3 shadow overflow-hidden ">
       <!-- Modal content -->
         <div id="modal_body" class="modal-body d-flex justify-content-center container ">
           <div>
-            <button class="btn btn-primary mt-1 col-md-12"  onclick="document.getElementById('myModal').style.display='none'">CLOSE</button>
           </div>
           <div class="bg-light gap-3 p-3 rounded shadow  flex-column d-flex" id="opsCode" >
+           <span onclick="document.getElementById('myModal').style.display='none'" title="close payment Modal">
+            <i class="bi bi-x-square-fill"></i>
+           </span> 
             <label for="opsCodes" class="form-label">The Operation you are about to process is sensitive</label>
             <form  id="Approve" data-user="<%=user.firstName%> <%=user.lastName%>">
               <div class="col-md-12 ">
@@ -498,10 +524,10 @@
               </div>
 
               <div class="col-md-12 bg">
-                <label for="bankAccount" class="form-label">Bank journal</label>
+                <label for="bankAccount" class="form-label">Bank Journal</label>
                 <select required id="AccountNumber" class="form-select" name="bankAccount" >
-                  <option value="">Choose...</option>
                   <%if(Acconuts.length > 0){%>
+                    <option value="">Choose...</option>
                     <%Acconuts.forEach((account)=>{%>
                       <option value="<%=account.bankCode%>"><%=account.bankCode%> ₦<%=account.Balance%></option>
                     <%})%>
@@ -534,7 +560,7 @@
                   placeholder="Enter Payment referenceNo"
                 />
               </div>
-              <button type="submit"  class="btn btn-success mt-1 col-md-12">APPROVE REQUEST</button>
+              <button type="submit"  id="CfOBtn" class="btn btn-success mt-1 col-md-12">APPROVE REQUEST</button>
 
             </form>
             <button type="button" id="Decline" data-user="<%=user._id%>" class="btn btn-danger  mt-1 col-md-12">REJECT / DELETE REQUEST</button>
@@ -550,6 +576,7 @@
       const ApproveForm = document.getElementById('Approve')
       ApproveForm.addEventListener('submit',async (event) => {
         event.preventDefault();
+        document.getElementById('CfOBtn').setAttribute('disabled',true);
         const BillId = document.getElementById('BillId').value
         const url =`/api/v1/Vendor/Bill/${BillId}`
         const request = await fetch(url,{
@@ -578,11 +605,18 @@
    display =  document.getElementById('opsCode')
    display.innerHTML = ''
    const textArea = document.createElement('textarea')
+   textArea.classList.add('is-invalid')
    const submitBtn = document.createElement('button')
+   const CloseBtn = document.createElement('button')
 
    submitBtn.innerText = 'Submit'
    submitBtn.classList.add('btn')
    submitBtn.classList.add('btn-warning')
+
+   CloseBtn.innerText = 'Cancel'
+   CloseBtn.classList.add('btn')
+   CloseBtn.classList.add('btn-outline-info')
+   
 
 
    textArea.placeholder = 'Describe Rejection Reason Here'
@@ -591,9 +625,11 @@
    textArea. cols="50"
    display.append(textArea)
    display.append(submitBtn)
+   display.append(CloseBtn)
 
 
    submitBtn.addEventListener("click", async ()=>{
+    submitBtn.disabled = true
     const BillId = document.getElementById('BillId').value
     const userId = Decline.dataset.user
     const request = await fetch(`/api/v1/Vendor/Bill/${BillId}`,{
@@ -611,6 +647,10 @@
           location.assign(`/api/v1/404`)
           location.reload()
         }
+   })
+
+   CloseBtn.addEventListener('click',()=>{
+    document.getElementById('myModal').style.display='none'
    })
     
     
@@ -643,6 +683,19 @@
     const request = await fetch(`/api/v1/Vendor/Bill/${BillId}`,{
       method:'PATCH',
       body:JSON.stringify({StoreKeeperConfirmation:false,status:'Declined By StoreKeeper'}),
+      headers:{'Content-Type':'application/json'}
+    })
+
+    const response = await request.json()
+    alert(response.message || response.error)
+    location.reload()
+  }
+
+  const AccountantAccept = async (params)=>{
+    const BillId = document.getElementById('BillId').value
+    const request = await fetch(`/api/v1/bill/${BillId}/approved`,{
+      method:'PATCH',
+      body:JSON.stringify({status:params}),
       headers:{'Content-Type':'application/json'}
     })
 

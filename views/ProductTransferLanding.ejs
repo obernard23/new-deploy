@@ -33,7 +33,7 @@
       </div>
     </nav>
      <!--bread crum div -->
-     <%if(user.jobTittle === "Invoicer" ){%>
+     <%if(user.raiseInvoice){%>
      <div class="d-flex justify-content-between p-2 m-1 bg-success-subtle ">
         <h5 class="font-bold"></h5>
          <button class="btn btn-success" onclick="location.assign('/api/v1/Virtual/Product/TransferForm/<%=user._id%>')">Generate Transfer</button>

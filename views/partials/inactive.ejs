@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
 </head>
 <body>
     <input type="hidden" id="user" value="<%=user._id%>"/>
-
-
-
-    <div id="status" class="modal flex items-center flex-col justify-center gap-3 shadow">
+    <div id="status" class="modal flex items-center flex-col justify-center gap-3 shadow  animate__animated animate__backInLeft">
       <div class="modal-body d-flex justify-content-center container">
         <p id='text' class="font-bold text-light"></p>
       </div>
@@ -45,13 +46,20 @@
 
     // network status
    const status = document.getElementById('status');
-  window.onload =  handleNetworkChange = () => {
+    window.onload =  handleNetworkChange = () => {
     if (navigator.onLine) {
       status.style.display = 'none';
-      
+      document.getElementById('text').classList.add( 'animate__backOutRight')
     } else {
+
+      Swal.fire({
+      title: "Got connection Issues ?",
+      text: "Seems Your Internet connection is Poor",
+      icon: "question"
+      });
+
       status.style.display = 'block';
-      document.getElementById('text').innerText='Seems Your Internet connection is Poor';
+      document.getElementById('text').innerText='Check your internet connection!';
     }
   };
 

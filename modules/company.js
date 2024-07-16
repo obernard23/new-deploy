@@ -22,6 +22,8 @@ const companyRegisterSchema = new mongoose.Schema({
     CompayState:String,
     CompayZip:String,
     CompayLogo:String,
+    InvoicePolicy:String,
+    ShopAddress:String,
     
     
 },{timestamps:true})

@@ -159,7 +159,12 @@ const WHSchema = new  mongoose.Schema({
     Scrap:{
         type:Array,
     },
-    Address:String
+    Address:String,
+    location:{
+        type:mongoose.Types.ObjectId,
+        ref:'location',
+        required:true,
+    },
 },{timestamps:true});
 
 const  WHouse = mongoose.model(' WHouse',WHSchema);

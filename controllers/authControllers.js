@@ -4,6 +4,14 @@ const client = require("twilio")(
   "AC68902380266ee09dbbbf6238728f930d",
   "dbc59d53cbcf4f3cc1b98ff648d82293"
 );
+const Helpdesk = require("../modules/Tickets");
+const BeamCard = require("../modules/BeamCard");
+const workContract = require("../modules/WorkContract");
+const Event = require("../modules/Events");
+const Assets = require("../modules/Assets");
+const Timeoff = require("../modules/Timeoff");
+const KPI = require("../modules/kpi");
+const Location = require("../modules/Location");
 const Lead = require("../modules/Leads");
 const Product = require("../modules/Product");
 const Vendor = require("../modules/Vendors");
@@ -19,6 +27,7 @@ const NotifyAccountant = require("../Functions/NotifyAccountant"); //for Account
 const Appraisals = require("../modules/Appraisal");
 const NotifyStoreKeeper = require("../Functions/NotifyStoreKeeper");
 const NotifyCFOPO = require("../Functions/NotifyCFOPO");
+const NotifyAccountantP0 = require("../Functions/NotifyAccountantPO");
 const NotifyStoreKeeperPO = require("../Functions/NotifyStoreKeeperPO");
 const NotifyInvoicerPODeclined = require("../Functions/NotifyInvoicerPODeclined");
 const AppraisalNotify = require("../Functions/AppraisalNotification");
@@ -53,6 +62,16 @@ const { Configuration, OpenAIApi } = require("openai");
 const readline = require("readline");
 const PayVendor = require("../modules/VendorBill");
 const HistoricalpriceChange = require("../modules/HistoricalPrice");
+const {jobTittle,Department} = require("../modules/departments");
+
+// function for currency
+const currency = (Amount)=>{
+  f = new Intl.NumberFormat(undefined,{
+    currency:"NGN",
+    style:"currency"
+  })
+  return f.format(Amount)
+}
 
 // handle errors
 const handleErrors = (err) => {
@@ -136,7 +155,8 @@ module.exports.Dashboard_get = async (req, res) => {
   // AutoReplenishCheck()//run autoreplenish notifications
   // send  birthday mail automatically
   const birth = moment().format();
-  const data = await Employe.find();
+  const data = await Employe.find({$and: [
+    { status: "active" },]}); 
   const company = await companyRegister.findOne();
 
   const birthdayPerson = data.filter((person) => {
@@ -196,26 +216,14 @@ module.exports.index_get = (req, res) => {
   res.render("index", { title: "Ecommerce", name: "BADE" });
 };
 
-module.exports.About_get = (req, res) => {
-  res.render("About", { title: "Ecommerce", name: "BADE" });
+module.exports.Notification_get = async (req, res) => {
+  const wHouse = await WHouse.findOne({ _id: new ObjectId(req.params.WHID)});
+  res.render("Notification", {
+    name: "BADE",
+    results: wHouse,
+  });
 };
 
-module.exports.Notification_get = async (req, res) => {
-  const wHouse = await WHouse.findOne({ _id: new ObjectId(req.params.WHID) });
-  res.render("Notification", {
-    title: "Ecommerce",
-    name: "BADE",
-    result: wHouse,
-  });
-};
-module.exports.Register_get = async (req, res) => {
-  const employees = await Employe.find();
-  res.render("register-customer", {
-    title: "Ecommerce",
-    name: "BADE",
-    employees,
-  });
-};
 
 module.exports.Reset_get = (req, res) => {
   res.render("Reset", { title: "Ecommerce", name: "BADE" });
@@ -252,11 +260,13 @@ module.exports.Register_post = async (req, res) => {
 module.exports.OnboardEmployee_get = async (req, res) => {
   const states = await NaijaStates.all();
   const Warehouse = await WHouse.find();
+  const jobTittles = await jobTittle.find()
+  const Departments = await Department.find()
   //  console.log(NaijaStates.lgas("Oyo"))
-  const Employee = await Employe.find();
+  const Employee = await Employe.find().sort({ firstName: 1 });
   res
     .status(200)
-    .render("employeeRegister", { name: "BADE", states, Employee, Warehouse });
+    .render("employeeRegister", { name: "BADE", states, Employee, Warehouse ,jobTittles,Departments});
 };
 
 // for onboarding
@@ -307,7 +317,12 @@ module.exports.getSingleEmployee_get = async (req, res) => {
       const Employee = await Employe.findById(req.params.EmployeeId);
       const Warehouse = await WHouse.find();
       const WH = await WHouse.findById(Employee.workLocation);
-      const Employees = await Employe.find();
+      const jobTittles = await jobTittle.find()
+      const Departments = await Department.find()
+      const contract = await workContract.find()
+      const Equiptment = await Assets.find({AssignedTo:req.params.EmployeeId})
+      const Employees = await Employe.find({$and: [
+        { status: "active" }]}); 
       res.status(200).render("SingleEmployee", {
         Employee,
         WH,
@@ -315,6 +330,10 @@ module.exports.getSingleEmployee_get = async (req, res) => {
         Warehouse,
         Employees,
         name: "BADE",
+        Equiptment,
+        contract,
+        jobTittles,
+        Departments
       });
     } catch (error) {
       console.log(error);
@@ -338,7 +357,7 @@ module.exports.signin_post = async (req, res) => {
             res.cookie("jwt", token, { httpOnly: true, maxAge: maxAge * 1000 });
             res.status(200).json({ Newcustomer: data._id });
           } else {
-            res.status(400).json({ errorPassword: "Wrong Password" });
+            res.status(500).json({errorPassword:'Wrong Password Entered'})
           }
         } else {
           throw new Error("Not a registered Email");
@@ -412,12 +431,94 @@ module.exports.Lead_post = async (req, res) => {
 };
 
 // for sales module. please copy  when done
-module.exports.CreateProduct_get = async (req, res) => {
-  const vendor = await Vendor.find();
-  const umo = await UMO.find();
-  const productcat = await ProductCat.find();
-  res.status(200).render("Create", { vendor, productcat, umo, name: "BADE" });
+module.exports.WorkContract_get = async (req, res) => {
+  res.status(200).render("workContract", { name: "BADE" });
 };
+
+// create workContract
+module.exports.workContract_post = async (req,res)=>{
+  await workContract.create(req.body).then(contract =>{
+    if(contract){
+      res.status(200).json({message:'contract created succesfully'})
+    }
+  })
+}
+
+
+// get request for leave
+module.exports.TimeOFF_get = async (req,res)=>{
+
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const result = {};
+  result.timeoffs = await Timeoff.find().sort({status:-1})
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(startIndex)
+    .exec();
+
+  if (endIndex < (await Timeoff.find().countDocuments().exec())) {
+    result.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    result.Previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
+  const searchAllTimeoff = await Timeoff.find().sort({status:-1});
+  res.status(200).render("Timeoff", { name: "BADE" ,result,searchAllTimeoff});
+}
+
+// edit leave request 
+module.exports.leaveRequests_patch = async (req,res,next) =>{
+    try{
+
+      if(ObjectId.isValid(req.query.timeoffId)) {
+        if(req.query.action !== 'HR Approved'){
+          await Timeoff.updateOne({_id:ObjectId(req.query.timeoffId)},{ $set: { status : req.query.action }})
+          .then((acknowledged)=>{
+            if(acknowledged){
+              res.status(200).json({message:req.query.action})
+            }else{
+              throw new Error('Something went wrong')
+            }
+          })
+        }else if(req.query.action === 'HR Approved'){
+          // deduct from allocated time off and generate payroll entry for paid leave request that hass been approved by
+          next()
+        }
+      }
+    }catch(error){
+      res.status(500).json({error:error.message})
+    }
+}
+
+//create a new leave request
+module.exports.leaveRequests_post = async (req,res,next) =>{
+  await Timeoff.create(req.body).then((timeoff)=>{
+   
+    res.status(200).json({message:'Request logged sucessfully'})
+  })
+}
+
+// get single time off
+module.exports.SingleTimeOff = async (req,res,next) =>{
+  if(ObjectId.isValid(req.query.id)) {
+
+    await Timeoff.findById(req.query.id).then((timeoff)=>{
+      res.status(201).render('SingleLeave',{timeoff,name:'BADE'})
+    })
+  }
+}
 
 //delete a product
 module.exports.Product_delete = async (req, res) => {
@@ -465,26 +566,26 @@ module.exports.SingleProductClone = async (req, res, next) => {
       Name: `${product.Name} COPY`,
       category: product.category,
       image: "",
-      WareHouse_Price: product.WareHouse_Price,
-      Market_Price: product.Market_Price,
-      vendor_Price: product.vendor_Price,
-      Van_Price: product.Van_Price,
+      WareHouse_Price: 0,
+      Market_Price: 0,
+      vendor_Price: 0,
+      Van_Price: 0,
       Vendor: product.Vendor,
-      UMO: "CARTON",
+      UMO:product.UMO,
       color: product.color,
       Description: product.Description,
       Sellable: false,
       Ecom_sale: false,
       Manufacture_code: product.Manufacture_code,
       product_code: product.product_code,
-      ACDcode: `*****`,
+      ACDcode: `COPY${product.ACDcode}${Math.floor(Math.random()*109394)}`,
       VAT: product.VAT,
       ActivityLog: [],
       virtualQty: 0,
-      Roll: product.Rolls,
+      Roll: 1,
     }).then((response) => {
       if (response) {
-        res.redirect(`/api/v1/Product/${response._id}/${response.Name}`);
+        res.redirect(`/api/v1/Product/${response._id}`);
       } else {
         res.end();
       }
@@ -498,9 +599,6 @@ module.exports.Vendors_get = async (req, res) => {
   res.render("Vendors", { vendor, title: "Vendors", name: "BADE" });
 };
 
-module.exports.VendorCreate_get = async (req, res) => {
-  res.render("Vendor-create", { title: "Vendors", name: "BADE" });
-};
 
 module.exports.VendorCreate_post = async (req, res) => {
   try {
@@ -513,8 +611,11 @@ module.exports.VendorCreate_post = async (req, res) => {
 
 // get all products
 module.exports.Product_get = async (req, res) => {
-  const Products = await Product.find();
-  res.render("Products", { Products, title: "Sales", name: "BADE" });
+  const Products = await Product.find().sort({Name:1});
+  const vendor = await Vendor.find();
+  const umo = await UMO.find();
+  const productcat = await ProductCat.find();
+  res.render("Products", { Products, title: "Sales", name: "BADE" ,vendor,umo,productcat});
 };
 
 //get single product
@@ -540,7 +641,7 @@ module.exports.SingleProduct_get = async (req, res) => {
 // get request for single product using adc code
 module.exports.SingleProductAdc_get = async (req, res) => {
   try {
-    await Product.findOne({ ACDcode: req.params.ADccode })
+    await Product.findOne({ ACDcode: req.params.referenceNo })
       .limit(1)
       .then(async (product) => {
         if (product) {
@@ -568,7 +669,9 @@ module.exports.SingleProductAdc_get = async (req, res) => {
 //get all ecomerce customers
 module.exports.Customer_get = async (req, res) => {
   const Cusomers = await customer.find();
-  res.render("Customers", { Cusomers, title: "Sales", name: "BADE" });
+  const employees = await Employe.find({$and: [
+    { status: "active" }]}); ;
+  res.render("Customers", { Cusomers, title: "Sales", name: "BADE" ,employees});
 };
 
 // create new product
@@ -692,7 +795,7 @@ module.exports.CustomerFind_get = async (req, res) => {
       .limit(1)
       .then(async (item) => {
         const Accounts = await Account.findOne({
-          locationOfUse: ObjectId(item.location),
+          _id: ObjectId(item.BankJournal),
         });
         res.status(200).json({ item, Accounts });
       })
@@ -703,11 +806,9 @@ module.exports.CustomerFind_get = async (req, res) => {
 //for warehouse ops
 module.exports.warehouse_get = async (req, res, next) => {
   const WHouses = await WHouse.find();
-  const employees = await Employe.find();
   res.render("warehouse", {
     title: "Warehouse",
     WHouses,
-    employees,
     name: "BADE",
   });
 };
@@ -737,7 +838,7 @@ module.exports.wareHouse_post = async (req, res) => {
           });
           // registerdProduct.ActivitiyLog.push({message: `Product registered successfully by Administrator on ${responseDate}`})
 
-          result.Notification.push({
+          result.Notification.unshift({
             message: `${prod.length} New products has been created in your inventory catalog by Administrator. on ${responseDate}`,
           });
 
@@ -856,7 +957,7 @@ module.exports.delivery_patch = async (req, res) => {
             // done.DELIVERYDATE = req.body.DELIVERYDATE
             // done.isDelivered = true
             done.ActivityLog.unshift({
-              logMsg: `Delivery Done on ${responseDate}`,
+              logMsg: `Delivery Done on ${responseDate} by ${req.params.id}`,
               status: `Invoice`,
             });
             done.billStatus = "Invoice";
@@ -880,6 +981,11 @@ module.exports.Invoice_get = async (req, res) => {
     WHIDS: new ObjectId(req.params.id),
   });
 
+  const currencies = await fetch('https://gist.githubusercontent.com/manishtiwari25/d3984385b1cb200b98bcde6902671599/raw/c004cf168b4532798361e0aee65f3a5b192136cf/world_currency_symbols.json')
+  .then((response)=>{
+   return response.json()
+  })
+
   if (ObjectId.isValid(req.params.id)) {
     await WHouse.findOne({ _id: ObjectId(req.params.id) })
       .limit(1)
@@ -892,6 +998,7 @@ module.exports.Invoice_get = async (req, res) => {
           name: "BADE",
           products,
           Business,
+          currencies
         });
       });
   }
@@ -937,14 +1044,17 @@ module.exports.customerEdit_patch = async (req, res) => {
 module.exports.stock_get = async (req, res) => {
   const Products = await Product.find();
   const wareHouse = await WHouse.find();
+  const Locations = await Location.find()
   const storeProducts = await storeProduct.find();
-  const employees = await Employe.find();
+  const employees = await Employe.find({$and: [
+    { status: "active" }]}); ;
   res.render("AllVirtualLocation", {
     Products,
     wareHouse,
     storeProducts,
     employees,
     name: "BADE",
+    Locations
   });
 };
 
@@ -964,11 +1074,12 @@ module.exports.WareHouseStoreage_post = async (req, res) => {
       });
 
       if (products.length > 0) {
-        throw new Error("this product has already been added to the store");
+        throw new Error("This product has already been added to the store");
       } else {
         async function Register(productId, WHIDS) {
           await Product.findById(productId).then(async (prod) => {
             const vendorNAME = await Vendor.findById(prod.Vendor);
+            
             await storeProduct
               .create({
                 WHIDS,
@@ -981,13 +1092,17 @@ module.exports.WareHouseStoreage_post = async (req, res) => {
                 vendorName: vendorNAME.Name,
                 isActivated: true,
                 category: prod.category,
+                Van_Price: prod.Van_Price,
+                Market_Price: prod.Market_Price,
+                WareHouse_Price: prod.WareHouse_Price,
+                VendorPrice: prod.vendor_Price,
               })
               .then((registerdProduct) => {
                 registerdProduct.ActivitiyLog.push({
                   message: `Product registered successfully by Administrator on ${responseDate}`,
                 });
 
-                wH.Notification.push({
+                wH.Notification.unshift({
                   message: `New product has been created in your inventory catalog by Administrator. on ${responseDate}`,
                 });
 
@@ -1093,7 +1208,6 @@ module.exports.WareHouseBill_post = async (req, res, next) => {
                 previousDebt = customer.Debt;
                 newDebt = parseInt(previousDebt) + parseInt(req.body.grandTotal);
 
-
                 // capture debt days here
                 if (newDebt > 0) {
                   await Customer.updateOne({_id: customer._id}, 
@@ -1190,85 +1304,18 @@ module.exports.WareHouseSingleBill_get = async (req, res, next) => {
   next();
 };
 
-//approve bills for managers
+//approve lpo for managers
 module.exports.approveBill_patch = async (req, res, next) => {
-  //   if (ObjectId.isValid(req.params.id)) {
-  //      await bills.findOne({ _id: new ObjectId(req.params.id) }).then(async(bill) => {
-  //       const warehouse = await WHouse.findById(new ObjectId(bill.whId))
-  //      await customer.findById({ _id: new ObjectId(bill.customer)})
-  //      .then((customer) => {
-  //       if(customer.category === "Credit-Customer"){
-  //         previousDebt =  customer.Debt
-  //         newDebt = previousDebt  + bill.subTotal
-  //         if(newDebt > customer.creditLimit){
-  //           res.status(404).json({message:"Customer Bill has exceeded credit Status "})
-  //         }else{
-  //         previousDebt =  customer.Debt
-  //         newDebt = previousDebt  + bill.subTotal
-  //         customer.Debt = newDebt
-  //         customer.save()
-  //         const d = new Date();
-  //       bill.status = "Approved";
-  //       bill.ActivityLog.unshift({
-  //         logMsg: `${warehouse.Manager.firstName} Approved  Bill on ${d.getFullYear()}-${
-  //           d.getMonth() + 1
-  //         }-${d.getDate()}`,
-  //         status: "Approved, Store keeper to Release Products",
-  //       });
-  //       bill.save();
-  //        //remove product from warehouse
-  //        bill.orders.forEach(async (order) =>{
-  //         await storeProduct.find({WHIDS: new ObjectId(bill.whId)})
-  //         .then(async(products)=>{
-  //           // filterproducts that are in warehouse to get product to deduct from
-  //           todeduct = products.filter(prud =>{
-  //             return prud.productId.toString() === order.item._id.toString()
-  //           }).map(currentQty=>{return currentQty.currentQty})
-  //         await storeProduct.updateOne({productId:order.item._id},{$set:{currentQty:todeduct - order.Qty}})
-  //         })
-  //        });
-  //       res
-  //         .status(200)
-  //         .json({ message: "Store keeper will be Notified to Release Goods to Customer" });
-  //         //create delivery here
-  //         NotifyStoreKeeper(bill)//send emai to storekeeper
-  //         }
-  //       }else if(customer.category === "Pay as Go"  && bill.registeredBalance === bill.grandTotal){
-  //         //create delivery here
-  //         const d = new Date();
-  //         bill.status = "Approved";
-  //         bill.ActivityLog.unshift({
-  //           logMsg: `${warehouse.Manager.firstName} Approved  Bill on ${d.getFullYear()}-${
-  //             d.getMonth() + 1
-  //           }-${d.getDate()}`,
-  //           status: "Approved, Store keeper to Release Products",
-  //         });
-  //         bill.save();
-  //          //remove product from warehouse
-  //          bill.orders.forEach(async (order) =>{
-  //           console.log(order)
-  //            await storeProduct.find({WHIDS: new ObjectId(bill.whId)})
-  //            .then(async(products)=>{
-  //              // filterproducts that are in warehouse to get product to deduct from
-  //              todeduct = products.filter(prud =>{
-  //                return prud.productId.toString() === order.item._id.toString()
-  //               }).map(currentQty=>{return currentQty.currentQty})
-  //               await storeProduct.updateOne({productId:order.item._id},{$set:{currentQty:todeduct - order.Qty}})
-  //           })
-  //          });
-  //     // store keeper to release goods
-  //         NotifyStoreKeeper(bill)
-  //         res
-  //           .status(200)
-  //           .json({ message: "Store keeper will be Notified to Release Goods to Customer" });
-  //       }else if(customer.category === "Pay as Go"  && bill.registeredBalance !== bill.grandTotal){
-  //         res
-  //         .status(500)
-  //         .json({ message: "Please await Accountant to Register payment on this bill" });
-  //       }
-  //           })
-  //     });
-  //   }
+  await PurchaseOrder.findById(req.params.id)
+  .then(async (PO)=>{
+    await PurchaseOrder.updateOne({_id:req.params.id},{ $set: { status:req.body.status }})
+    .then(async(acknowledged)=>{
+      if(acknowledged){
+        req.body.status === 'Accountant Accept'? NotifyCFOPO(PO):"";
+      }
+      res.status(200).json({message:`GRN ${req.body.status}`})
+    })
+  })
 };
 
 //send mail route to customer
@@ -1283,11 +1330,13 @@ module.exports.customer_get = async (req, res) => {
       await customer
         .findOne({ _id: new ObjectId(req.params.id) })
         .then(async (result) => {
-          const employees = await Employe.find();
+          const employees = await Employe.find({$and: [
+            { status: "active" }]}); ;
           const wh = await WHouse.find();
+          const Accounts = await Account.find()
           res
             .status(200)
-            .render("SingleCustomer", { result, name: "BADE", employees, wh });
+            .render("SingleCustomer", { result, name: "BADE", employees, wh ,Accounts});
         });
     } catch (error) {
       res.status(404).render("404", { error: error, name: "BADE" });
@@ -1359,12 +1408,7 @@ module.exports.vendorEdit_patch = async (req, res) => {
   }
 };
 
-//payment routes
-module.exports.Payment_get = async (req, res) => {
-  const Bill = await bills.find().sort({ registeredBalance: 1 });
-  const customers = await customer.find();
-  res.status(200).render("payment", { Bill, customers, name: "BADE" });
-};
+
 
 module.exports.paymentRevoke_patch = async (req, res) => {
   try {
@@ -1491,7 +1535,7 @@ module.exports.WareHouseStoreage_get = async (req, res, next) => {
       .limit(1)
       .then(async (item) => {
         const prud = await Product.find();
-        products = await storeProduct.find({ WHIDS: new ObjectId(item._id) });
+        products = await storeProduct.find({ WHIDS: new ObjectId(item._id) }).sort({currentQty:-1});
         res.status(200).render("wareHouseProduct", {
           result: item,
           products,
@@ -1499,7 +1543,6 @@ module.exports.WareHouseStoreage_get = async (req, res, next) => {
           name: "BADE",
         });
       });
-    next();
   } else {
     res.redirect("/api/v1/404");
   }
@@ -1625,16 +1668,16 @@ module.exports.Report_get = async (req, res, next) => {
       return bill.grandTotal;
     })
     .reduce((total, currentValue) => {
-      return total + currentValue;
+      return parseInt(total + currentValue);
     }, 0);
-
+    
   // get Revenue
 
   const Revenue = await CreditCustomerPayment.find().then((payment) => {
     return payment
       .sort((a, b) => b.PaymentDate - a.PaymentDate)
       .filter((payment) => {
-        return payment.collectionRef === "PMNT";
+        return payment.collectionRef === "PMNT" &&  payment.status === "posted";
       })
       .filter((rev) => {
         return moment(rev.PaymentDate).format("l") === moment().format("l");
@@ -1643,7 +1686,7 @@ module.exports.Report_get = async (req, res, next) => {
         return amount.crAmount;
       })
       .reduce((total, currentValue) => {
-        return total + currentValue;
+        return parseInt(total + currentValue);
       }, 0);
   });
 
@@ -1672,8 +1715,10 @@ module.exports.Report_get = async (req, res, next) => {
 // get all data from database
 module.exports.getFullDB = async (req, res) => {
   // get all employee
-  const Assets = require("../modules/Assets");
+  const Business = await companyRegister.findOne();
+  const StcokCards = await BeamCard.find();
   const Employee = await Employe.find();
+  const timeoff = await Timeoff.find()
   const Products = await Product.find();
   const customers = await Customer.find();
   const vendor = await Vendor.find();
@@ -1688,12 +1733,16 @@ module.exports.getFullDB = async (req, res) => {
   const ExpCat = await ExpenseCat.find();
   const Asset = await Assets.find();
   const vendorBill = await PayVendor.find();
+  const Appraisal = await Appraisals.find()
+  const Events = await Event.find()
+  const Tickets = await Helpdesk.find()
   res.status(200).json({
     Employee,
     Products,
     customers,
     vendor,
     invoice,
+    Events,
     payment,
     WH,
     LPO,
@@ -1704,6 +1753,11 @@ module.exports.getFullDB = async (req, res) => {
     ExpCat,
     Asset,
     vendorBill,
+    timeoff,
+    Appraisal,
+    StcokCards,
+    Business,
+    Tickets
   });
 };
 
@@ -1790,16 +1844,139 @@ module.exports.vendorFind_get = async (req, res) => {
 // aprraisal get
 module.exports.Appraisal_get = async (req, res) => {
   if (ObjectId.isValid(req.params.id)) {
+   const KPIs = await KPI.find().sort({ name: 1 }); 
     await Employe.findOne({ _id: ObjectId(req.params.id) })
       .limit(1)
-      .then((item) => {
-        res.status(200).render("Appraisal", { item, name: "BADE" });
+      .then(async(Employee) => {
+      const emApp =  await Appraisals.find({Employe:Employee._id}).sort({createdAt:1})
+        res.status(200).render("SingleEmployeeAppraisalList", { Employee, name: "BADE" ,KPIs,emApp});
       });
   } else {
     res.redirect("/api/v1/404");
   }
 };
 
+
+// get single Appraisal
+module.exports.SingleAppraisal_get = async (req,res,next)=>{
+  if (ObjectId.isValid(req.params.id)) {
+    await Appraisals.findById( ObjectId(req.params.id))
+     .limit(1)
+     .then(async (item) => {
+      const Employee = await Employe.findById(new ObjectId(item.Employe));
+        res.status(200).render("Appraisal",{ item,Employee,name:'BADE' });
+      });
+  }
+}
+
+//appraisal status change
+module.exports.SingleAppraisal_patch = async (req,res)=>{
+ try {
+  if (ObjectId.isValid(req.params.id)) {
+    // check for status
+    if(req.query.btnStatus){
+      
+      await Appraisals.updateOne({ _id: ObjectId(req.params.id) }, { $set: {status:req.query.status,generalRating:req.query.generalRating} })
+    .then((acknowledge)=>{
+      if(acknowledge){
+        res.status(200).json({message:"Appraisal Status Changed Successfully"})
+      }else{
+        throw new Error('something went wrong')
+      }
+
+    })
+
+    }
+
+    // check for employeescore
+    if(req.query.employeeScore){
+      // uddate kpi field for employee score
+      await Appraisals.updateOne(
+        {
+          _id: req.params.id,
+          "kpi._id": req.query.kpiid,
+        },
+        {
+          $set: {
+            "kpi.$.employeeScore": req.body.score
+          }
+        },
+      ).then(acknowledge=>{
+        if(acknowledge){
+          res.status(200).json({message:'Updated'})
+        }else{
+          throw new Error('Something went Wrong')
+        }
+      })
+    }
+
+    // update manager fscore fireld
+    if(req.query.managerScore){
+      // uddate kpi field for employee score
+      await Appraisals.updateOne(
+        {
+          _id: req.params.id,
+          "kpi._id": req.query.kpiid,
+        },
+        {
+          $set: {
+            "kpi.$.Manager_Score": req.body.score,
+            "kpi.$.Rating": req.query.Avg
+          }
+        },
+      ).then(acknowledge=>{
+        if(acknowledge){
+          res.status(200).json({message:'Updated'})
+        }else{
+          throw new Error('Something went Wrong')
+        }
+      })
+    }
+
+    // comment from HR, EMPLOYEE AND MANAGER
+    if(req.query.who ==='ManagerComment'){
+      
+      await Appraisals.updateOne({ _id: ObjectId(req.params.id) }, { $set: {ManagerComment:req.body.comments,generalRating:req.query.generalRating} })
+      .then((acknowledge)=>{
+        if(acknowledge){
+          res.status(200).json({message:"Manager comment saved"})
+        }else{
+          throw new Error('something went wrong')
+        }
+  
+      })
+
+    }else if(req.query.who ==='HR'){
+
+      await Appraisals.updateOne({ _id: ObjectId(req.params.id) }, { $set: {HrCommnet:req.body.comments,generalRating:req.query.generalRating} })
+      .then((acknowledge)=>{
+        if(acknowledge){
+          res.status(200).json({message:"Comment saved"})
+        }else{
+          throw new Error('something went wrong')
+        }
+  
+      })
+
+    }else if (req.query.who ==='Employee'){
+
+      await Appraisals.updateOne({ _id: ObjectId(req.params.id) }, { $set: {employeComment:req.body.comments,generalRating:req.query.generalRating} })
+      .then((acknowledge)=>{
+        if(acknowledge){
+          res.status(200).json({message:"Comment saved"})
+        }else{
+          throw new Error('something went wrong')
+        }
+  
+      })
+
+    }
+    
+  }
+ } catch (error) {
+  res.status(500).json({error: error.message})
+ }
+}
 // sends json response for single employee
 module.exports.WareHouseManager_get = async (req, res) => {
   const employee = await Employe.findById(new ObjectId(req.params.employeeId));
@@ -1808,28 +1985,34 @@ module.exports.WareHouseManager_get = async (req, res) => {
 
 module.exports.Appraisal_post = async (req, res) => {
   try {
-    await Appraisals.create(req.body).then((data) => {
+    if (ObjectId.isValid(req.body.Employe)) {
+    await Appraisals.create(req.body).then(async (data) => {
       if(data) {
+        await Employe.updateOne( { _id: ObjectId(data.Employe) },
+        { $set: { Appraisal: `${data.StartDate}` } })
         AppraisalNotify(data)
         res.status(200).json({ message: "Appraisal Submited Successfully" });
       }
-    });
+     });
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-  res.end();
+  
 };
 
 module.exports.AppraisalsManagement_get = async (req, res) => {
   if (ObjectId.isValid(req.params.id)) {
+     
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const results = {};
-    results.Appraisal = await Appraisals.find()
-      .sort({ createdAt: -1 })
+    results.Appraisal =  await Employe.find({$and: [
+      { status: "active" }]})
+      .sort({ firstName: 1 })
       .limit(limit)
       .skip(startIndex)
       .exec()
@@ -1859,7 +2042,8 @@ module.exports.AppraisalsManagement_get = async (req, res) => {
       };
     }
 
-    results.Employee = await Employe.find();
+    results.KPI = await KPI.find().sort({ name: 1 }); 
+
     results.currentPage = req.query.page;
     results.currentCat = req.query.category;
 
@@ -1870,27 +2054,27 @@ module.exports.AppraisalsManagement_get = async (req, res) => {
   }
 };
 
-//for expense controller
-module.exports.expense_get = async (req, res, next) => {
-  if (ObjectId.isValid(req.params.WHID)) {
-    await WHouse.findOne({ _id: new ObjectId(req.params.WHID) })
-      .limit(1)
-      .then(async (item) => {
-        const expenseCat = await ExpenseCat.find();
-        const Expenses = await Expense.find({ WHID: new ObjectId(item._id) });
-        const employee = await Employe.findOne(Expenses.initiatorId);
-        res.status(200).render("Expense", {
-          result: item,
-          Expenses,
-          employee,
-          expenseCat,
-          name: "BADE",
-        });
-      });
-  } else {
-    res.redirect("/api/v1/404");
-  }
-};
+// //for expense controller
+// module.exports.expense_get = async (req, res, next) => {
+//   if (ObjectId.isValid(req.params.WHID)) {
+//     await WHouse.findOne({ _id: new ObjectId(req.params.WHID) })
+//       .limit(1)
+//       .then(async (item) => {
+//         const expenseCat = await ExpenseCat.find();
+//         const Expenses = await Expense.find({ WHID: new ObjectId(item._id) });
+//         const employee = await Employe.findOne(Expenses.initiatorId);
+//         res.status(200).render("Expense", {
+//           result: item,
+//           Expenses,
+//           employee,
+//           expenseCat,
+//           name: "BADE",
+//         });
+//       });
+//   } else {
+//     res.redirect("/api/v1/404");
+//   }
+// };
 
 //post request for expense
 module.exports.expense_post = async (req, res, next) => {
@@ -1972,7 +2156,9 @@ module.exports.Scrap_post = async (req, res, next) => {
 //GET ROUTE FOR WHOUSE STAF
 module.exports.staff_get = async (req, res, next) => {
   if (ObjectId.isValid(req.params.WHID)) {
-    const Employee = await Employe.find({ workLocation: req.params.WHID });
+    const Employee = await Employe.find({$and: [
+      { status: "active" },
+      { workLocation: req.params.WHID }]}); 
     res.status(200).render("wareHouseStaff", { Employee, name: "BADE" });
   } else {
     res.redirect("/api/v1/404");
@@ -1993,13 +2179,50 @@ module.exports.replenish_storeproduct = async (req, res, next) => {
 };
 
 //ware house stock request get
-module.exports.wareHouse_Purchase = async (req, res, next) => {
+module.exports.wareHouse_BeamCard = async (req, res, next) => {
   if (ObjectId.isValid(req.params.WHID)) {
     const result = await WHouse.findById(new ObjectId(req.params.WHID));
     const products = await storeProduct.find({ WHIDS: req.params.WHID });
-    res
-      .status(200)
-      .render("warehousePurchase", { result, products, name: "BADE" });
+
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const results = {};
+    results.BeamCard =  await BeamCard.find({WHID:req.params.WHID})
+      .sort({ createdAt: 1 })
+      .limit(limit)
+      .skip(startIndex)
+      .exec()
+      .then((bills) => {
+          return bills;
+      });
+
+    if (endIndex < (await BeamCard.find().countDocuments().exec())) {
+      results.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      results.Previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
+
+    results.currentPage = req.query.page;
+
+    res.status(200).render("BeamCard", {
+      results,
+      name: "BADE",
+      products,
+      result
+    });
+
   } else {
     res.redirect("/api/v1/404");
   }
@@ -2018,18 +2241,50 @@ module.exports.StockRequest_post = async (req, res, next) => {
 module.exports.WareHouseSetup_get = async (req, res) => {
   if (ObjectId.isValid(req.params.WHID)) {
     const warehouse = await WHouse.findById(new ObjectId(req.params.WHID));
-    const storeProducts = await storeProduct.find({
-      WHIDS: new ObjectId(req.params.WHID),
-    });
     const Products = await Product.find();
     const purchaseOrder = await PurchaseOrder.find();
-    const employe = await Employe.find({ status: "active" });
+    const location = await Location.find()
+    const employe = await Employe.find({$and: [
+      { status: "active" },
+      { workLocation: req.params.WHID }]}); 
+
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const result = {};
+    result.storeProducts = await storeProduct.find({
+      WHIDS: new ObjectId(req.params.WHID),
+    })
+      .sort({ currentQty: -1 })
+      .limit(limit)
+      .skip(startIndex)
+      .exec();
+
+    if (endIndex < (await storeProduct.find({
+      WHIDS: new ObjectId(req.params.WHID),
+    }).countDocuments().exec())) {
+      result.next = {
+        page: page + 1,
+        limit: limit,
+      };
+    }
+
+    if (startIndex > 0) {
+      result.Previous = {
+        page: page - 1,
+        limit: limit,
+      };
+    }
+
     res.status(200).render("SetupWarehouse", {
       warehouse,
-      storeProducts,
+      result,
       Products,
       purchaseOrder,
       employe,
+      location,
       name: "BADE",
     });
   }
@@ -2114,18 +2369,84 @@ module.exports.SingleScrap_get = async (req, res) => {
 
 //expense get for cfo
 module.exports.CFexpense_get = async (req, res) => {
-  const Expenses = await Expense.find();
+  
   const WHID = await WHouse.find();
-  const expenseCat = await ExpenseCat.find();
-  res
-    .status(200)
-    .render("CFexpense", { Expenses, WHID, expenseCat, name: "BADE" });
-};
+  const expenseCat = await ExpenseCat.find().sort({NAME:1});
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const result = {};
+  result.Expenses = await Expense.find()
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(startIndex)
+    .exec();
+
+  if (endIndex < (await PurchaseOrder.find().countDocuments().exec())) {
+    result.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    result.Previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
+  const searchAllExpense = await Expense.find();
+  
+  res.render("CFexpense", {
+    result,
+    searchAllExpense,
+    WHID, 
+    expenseCat, 
+    name: "BADE"
+  });
+}
+
+// delete route for expense category
+module.exports.ExpenseCategory_delete = async (req,res,next)=>{
+  await ExpenseCat.deleteOne({_id:req.query.id}).then(acknowledge =>{
+    if(acknowledge)  res.redirect(`/api/v1/CFO/EXPENSE/${req.query.userId}?page=1&limit=9`);
+  })
+}
 
 //for cfr return route
 module.exports.CFOReturns_get = async (req, res) => {
-  const returns = await Returns.find().sort();
-  res.status(200).render("CFORETURNS", { returns, name: "BADE" });
+
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const result = {};
+  result.returns = await Returns.find()
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(startIndex)
+    .exec();
+
+  if (endIndex < (await Returns.find().countDocuments().exec())) {
+    result.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    result.Previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
+  const searchAllPurchase = await Returns.find();
+  res.status(200).render("CFORETURNS", { result ,searchAllPurchase, name: "BADE" });
 };
 
 //get request for single rehturns
@@ -2147,84 +2468,111 @@ module.exports.SingleReturns_get = async (req, res) => {
 };
 
 //patch for returns on invoice
-module.exports.SingleReturns_patch = async (req, res) => {
+module.exports.SingleReturns_patch = async (req, res, next) => {
+
   try {
+    
     await Returns.findById(req.body.id).then(async (crditNote) => {
       const Bill = await bills.findById(crditNote.BillId);
-      const customer = await Customer.findById(Bill.customer);
-      if (Bill.billStatus === "Cancelled") {
-        throw new Error("This bill has already been Cancelled");
-      } else {
-        Bill.orders.forEach(async (order) => {
-          await storeProduct
-            .find({ WHIDS: new ObjectId(Bill.whId) })
-            .then(async (products) => {
-              // filterproducts that are in warehouse to get product to deduct from
-              todeduct = products
-                .filter((prud) => {
-                  return (
-                    prud.productId.toString() === order.item._id.toString()
-                  );
-                })
-                .map((currentQty) => {
-                  return currentQty.currentQty;
-                });
-              // check for carton and remove
-              if (order.scale === "Carton") {
-                // return cartorn
-                await storeProduct.updateOne(
-                  { _id: order.storeProductId },
-                  { $set: { currentQty: todeduct[0] + order.Qty } }
-                );
-                // product sales count
-                await Product.findById(order.item._id).then((productSold) => {
-                  currentTotalSale = productSold.TotalSale;
-                  productSold.TotalSale = currentTotalSale - order.Qty;
-                  productSold.save();
-                });
-              } else if (order.scale === "Roll") {
-                //deduct and action carton removal and rolls
-                const RemoveRolls = async (order) => {
-                  await storeProduct
-                    .findById(order.storeProductId)
-                    .then((product) => {
-                      product.Rolls = product.Rolls + order.Qty;
-                      product.save();
-                    });
-                };
-                RemoveRolls(order);
-              }
-            });
-        });
-        Bill.ActivityLog.unshift({
-          logMsg: `Returned Approved on ${responseDate}`,
-          status: "Cancelled",
-        });
-        Bill.billStatus = "Cancelled";
-        Bill.save();
-        crditNote.status = "Approved";
-        crditNote.save();
-        //  action customer payment here
-        customer.Debt = customer.Debt - Bill.grandTotal;
-        if (customer.Debt - Bill.grandTotal <= 0) {
-          customer.lastPayDate = "";
-        }
-        customer.save();
+      
+          Bill.orders.forEach(async (order) => {
+           
+            const PreviousValue = await storeProduct.findById(order.storeProductId)
 
-        //generate report for customer
-        await CustomerReport.create({
-          ReferenceNo: `RMA-${Bill.billReferenceNo}`,
-          CreditAmount: Bill.grandTotal,
-          Date: moment().format("l"),
-          customerId: customer._id,
-          Balance: customer.Debt,
-          cr: true,
-          DebitAmount: 0,
-          dr: false,
-        });
-      }
-      res.status(200).json({ message: "Return successfully completed" });
-    });
+            if (order.scale === "Carton") {
+ 
+            await storeProduct.updateOne({ _id: ObjectId(order.storeProductId )},
+             { $set: { currentQty:PreviousValue.currentQty + order.Qty }})
+             .then(async (acknowledged) => {
+  
+              if(acknowledged){
+                 
+                // CHange status of the product to WHIN
+                await bills.updateOne(
+                  {
+                    _id: ObjectId(crditNote.BillId),
+                    "orders.storeProductId": order.storeProductId
+                  },
+                  {
+                    $set: {
+                      "orders.$.returnId": 'WH/IN'
+                    }
+                  },
+                )
+  
+              }
+  
+             })//update function block ends here
+  
+             
+              // decrease sales count
+              await Product.findById(order.item._id).then((productSold) => {
+                currentTotalSale = productSold.TotalSale;
+                productSold.TotalSale = currentTotalSale - order.Qty;
+                productSold.save();
+              });
+
+            }else if(order.scale === "Roll"){
+               //deduct and action carton removal and rolls
+               const RemoveRolls = async (order) => {
+                await storeProduct
+                  .findById(order.storeProductId)
+                  .then(async (product) => {
+                    product.Rolls = product.Rolls + order.Qty;
+                    product.save();
+
+                     // CHange status of the product to WHIN
+                await bills.updateOne(
+                  {
+                    _id: ObjectId(crditNote.BillId),
+                    "orders.storeProductId": order.storeProductId
+                  },
+                  {
+                    $set: {
+                      "orders.$.returnId": 'WH/IN'
+                    }
+                  },
+                )
+                  });
+              };
+              RemoveRolls(order);
+
+            }else{
+              await storeProduct.updateOne({_id:ObjectId(order.storeProductId)},{ $set: {currentQty:PreviousValue.currentQty + order.Qty ,Rolls:PreviousValue.Rolls + order.ROLQTY}})
+              .then(async (acknowledged) => {
+  
+                if(acknowledged){
+                   
+                  // CHange status of the product to WHIN
+                  await bills.updateOne(
+                    {
+                      _id: ObjectId(crditNote.BillId),
+                      "orders.storeProductId": order.storeProductId
+                    },
+                    {
+                      $set: {
+                        "orders.$.returnId": 'WH/IN'
+                      }
+                    },
+                  )
+    
+                }
+    
+               })//update function block ends here
+            }
+  
+          })//foreach scope ends here
+
+          Bill.ActivityLog.unshift({
+            logMsg: `Return Approved on ${responseDate}`,
+            status: "Cancelled",
+          });
+          Bill.billStatus = "Cancelled";
+          Bill.save();
+
+          next()
+    })
+    
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -2237,7 +2585,10 @@ module.exports.paymentLanging_get = async (req, res) => {
 
 // p&l route
 module.exports.pnl_get = async (req, res) => {
-  res.status(200).render("P&L", { name: "BADE" });
+  const Business = await companyRegister.findOne();
+  const location = await Location.find()
+  const vendors = await Vendor.find()
+  res.status(200).render("P&L", { name: "BADE" ,Business,location,vendors});
 };
 
 //purchase lading page
@@ -2251,12 +2602,42 @@ module.exports.PurchaseRequestForm_get = async (req, res, next) => {
   const WH = await WHouse.find();
   const vendor = await Vendor.find();
   const products = await Product.find();
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const result = {};
+  result.purchaseOrder = await PurchaseOrder.find()
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(startIndex)
+    .exec();
+
+  if (endIndex < (await PurchaseOrder.find().countDocuments().exec())) {
+    result.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    result.Previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
+  const searchAllPurchase = await PurchaseOrder.find();
+  
   res.render("PurchaseRequestForm", {
     name: "BADE",
     vendor,
     products,
     Business,
     WH,
+    result,
+    searchAllPurchase,
   });
 };
 
@@ -2268,59 +2649,17 @@ module.exports.purchaseRequest_get = async (req, res) => {
   });
 };
 
-//PurchaseOrder_get
-module.exports.PurchaseOrder_get = async (req, res, next) => {
-  try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const result = {};
-    result.purchaseOrder = await PurchaseOrder.find()
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip(startIndex)
-      .exec();
-
-    if (endIndex < (await PurchaseOrder.find().countDocuments().exec())) {
-      result.next = {
-        page: page + 1,
-        limit: limit,
-      };
-    }
-
-    if (startIndex > 0) {
-      result.Previous = {
-        page: page - 1,
-        limit: limit,
-      };
-    }
-
-    const vendor = await Vendor.find();
-    const searchAllPurchase = await PurchaseOrder.find();
-    res
-      .status(200)
-      .render("PurchaseOrder", {
-        name: "BADE",
-        result,
-        vendor,
-        searchAllPurchase,
-      });
-  } catch (e) {
-    res.status(404);
-  }
-};
 
 // purchase order request post
 module.exports.PurchaseOrder_post = async (req, res, next) => {
   try {
     await PurchaseOrder.create(req.body).then(async (purchased) => {
       if (purchased) {
-        NotifyCFOPO(purchased);
+        NotifyAccountantP0(purchased)
         res.status(200).json({
           message:
-            "Request Submited Succefully, We will notify the CFO to Review this Purchase Order",
+            "Request Submited Succefully, We will notify the Accountant to Review this Purchase Order",
         });
       } else {
         throw new Error("Something went wrong");
@@ -2339,14 +2678,6 @@ module.exports.PurchaseRequest_get = async (req, res, next) => {
     .render("PurchaseRequest", { name: "BADE", Requests, wareHouse });
 };
 
-//CFOVendorBill_get
-module.exports.CFOVendorBill_get = async (req, res, next) => {
-  const VendorBills = await PurchaseOrder.find();
-  const vendor = await Vendor.find();
-  res
-    .status(200)
-    .render("CFOVendorBill", { name: "BADE", VendorBills, vendor });
-};
 
 // VendorPayment_get
 module.exports.VendorPayment_get = async (req, res) => {
@@ -2354,12 +2685,14 @@ module.exports.VendorPayment_get = async (req, res) => {
   const Acconuts = await Account.find();
   const customers = await Customer.find();
   const VendorReports = await PayVendor.find();
+  const wareHouse = await Location.find();
   res.status(200).render("VendorPayment", {
     name: "BADE",
     VENDOR,
     Acconuts,
     VendorReports,
     customers,
+    wareHouse
   });
 };
 
@@ -2463,6 +2796,7 @@ module.exports.VendorBalance_patch = async (req, res, next) => {
               cr: true,
               Balance: UPDATEDvendor.Balance,
               PaymentDate: req.body.PaymetDate,
+              location: req.body.location
             });
             res.status(200).json({ message: "Payment registered successful" });
           } else {
@@ -2573,6 +2907,7 @@ module.exports.VendorPayment_Patch = async (req, res) => {
 
 // register vendor bills
 module.exports.CFOVendorBill_patch = async (req, res, next) => {
+  
   const vendorBill = await PurchaseOrder.findById(req.params.BillId);
 
   if (vendorBill.StoreKeeperConfirmation === false) {
@@ -2593,7 +2928,7 @@ module.exports.CFOVendorBill_patch = async (req, res, next) => {
               { _id: ObjectId(account._id) },
               { $set: { Balance: parseInt(newBalance) } }
             );
-            // register payment method
+            // register payment method to bank journal
             await CreditCustomerPayment.create({
               PaymentDate: req.body.PaymentDate,
               Accountant: req.body.CFO,
@@ -2634,7 +2969,7 @@ module.exports.CFOVendorBill_patch = async (req, res, next) => {
                   : new Error("payment Registration Failed");
                 res.status(200).json({
                   message:
-                    "Payment Registration Successful. Notification will be sent to WareHouse Store Keeper",
+                    "Payment Registration Successful. Notification has been sent to WareHouse Store Keeper",
                 });
               } else {
                 throw new Error("payment Registration Failed");
@@ -2658,26 +2993,44 @@ module.exports.CFOVendorBill_patch = async (req, res, next) => {
       } else if (req.body.StoreKeeperConfirmation === true) {
         //approve for store keeper confirmation
 
-        vendorBill.orders.forEach(async (order) => {
-          const product = await storeProduct.findById(order.storeproductId);
-          const update = product.currentQty + order.Qty;
-          await storeProduct.updateMany(
-            { _id: ObjectId(order.storeproductId) },
+        for (let index = 0; index < vendorBill.orders.length; index++) {
+          const element = vendorBill.orders[index];
+          
+          const product = await storeProduct.findById(element.storeproductId);
+          const update = product.currentQty + element.Qty;
+          await storeProduct.updateOne(
+            { _id: ObjectId(element.storeproductId) },
             {
               $set: {
                 currentQty: update,
-                ExpDate: order.ExpDate,
-                BatchNo: order.BatchNo,
+                ExpDate: element.ExpDate,
+                BatchNo: element.BatchNo,
                 LastBatchDate: vendorBill.recievedDate,
               },
             }
-          );
+          ).then(async (acknowledge)=>{
+            if(acknowledge){
+               // for tracebility
+               await PurchaseOrder.updateOne(
+                {
+                  _id: ObjectId(vendorBill._id),
+                  "orders.storeproductId": element.storeproductId
+                },
+                {
+                  $set: {
+                    "orders.$.Status": 'WH/IN'
+                  }
+                },
+              )
+            }
+          });
 
           product.ActivitiyLog.unshift({
-            message: `${order.Qty}Carton(s) Was registered into Inventory on ${responseDate}. with P.O ref: ${vendorBill.billReferenceNo}`,
+            message:` ${element.Qty}Carton(s) Was registered into Inventory on ${responseDate}. with P.O ref: ${vendorBill.billReferenceNo}`,
           });
           product.save();
-        });
+          
+        }
         // notify cfo email
         // NotifyCFOPO(vendorBill)
         vendorBill.StoreKeeperConfirmation = true;
@@ -2834,14 +3187,50 @@ module.exports.productsJson_get = async (req, res) => {
 module.exports.CreditCustomers_get = async (req, res) => {
   const creditCustomes = await customer.find();
   const Acconuts = await Account.find();
-  const creditPayment = await CreditCustomerPayment.find();
+
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const result = {};
+  result.creditPayment = await CreditCustomerPayment.find({collectionRef:'PMNT'})
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .skip(startIndex)
+    .exec();
+
+  if (endIndex < (await CreditCustomerPayment.find().countDocuments().exec())) {
+    result.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    result.Previous = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
+
   res.status(200).render("CreditPayment", {
     name: "BADE",
     creditCustomes,
     Acconuts,
-    creditPayment,
+    result,
   });
 };
+
+//get single payment
+module.exports.singlePayment_get = async (req,res,next)=>{
+  if(ObjectId.isValid(req.params.id)){
+    const payment =  await CreditCustomerPayment.findById(req.params.id)
+    const customer = await Customer.findById(payment.BillNo)
+    res.status(200).render('SinlePayment',{name:'BADE',payment,customer})
+  }
+}
 
 // for AccountSettingLanding
 module.exports.AccountSettingLanding_get = async (req, res) => {
@@ -2849,6 +3238,20 @@ module.exports.AccountSettingLanding_get = async (req, res) => {
   const WHous = await WHouse.find();
   res.render("AccountSettingLanding", { name: "BADE", account, WHous });
 };
+
+// get single bank account
+module.exports.SingleAccount_get = async (req,res)=>{
+  try {
+    await Account.findById(new ObjectId(req.params.Account)).then(
+      async (account) => {
+       const entries = await CreditCustomerPayment.find({bankAccount: account.bankCode}).sort({ createdAt: -1 })
+        res.status(200).render("SingleAccount", { name: "BADE", account,entries });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
 
 // to create bank ,account
 module.exports.BankAccount_post = async (req, res) => {
@@ -3047,11 +3450,13 @@ module.exports.SingleProductTransfer_get = async (req, res) => {
       );
       const Whouse = await WHouse.findById(new ObjectId(transferLog.from));
       const to = await WHouse.findById(new ObjectId(transferLog.to));
+      const Business = await companyRegister.findOne();
       res.status(200).render("SingleProductTransfer", {
         name: "BADE",
         transferLog,
         Whouse,
         to,
+        Business
       });
     } catch (error) {
       console.log(error);
@@ -3078,14 +3483,7 @@ module.exports.WHProductTransfer_get = async (req, res) => {
 
 //product trasferform to ware house
 module.exports.ProductTransferForm_get = async (req, res, next) => {
-  // await storeProduct.find().then(async (product) =>{
-  //   product.forEach(async product =>{
-  //     await storeProduct.updateOne({ _id: ObjectId(product._id) }, { $set: {BatchNo:'',ExpDate:'',LastBatchDate:''}})
 
-  //   })
-  // })
-  // console.log(';reacheds')
-  // res.end()
   try {
     const WHous = await WHouse.find();
     const PurchaseOrders = await PurchaseOrder.find();
@@ -3357,7 +3755,7 @@ module.exports.ExcelProduct_get = async (req, res) => {
     "WAREHOUSE_PROMO",
     "SUPER_MARKET_PROMO",
     "VENDOR",
-    "Photo",
+    "BP"
   ];
   const Products = await Product.find();
   let vendor = await Vendor.find();
@@ -3388,7 +3786,7 @@ module.exports.ExcelProduct_get = async (req, res) => {
       data.WholesalePromo,
       data.MarketPromo,
       ven[0],
-      data.image,
+      data.vendor_Price,
     ];
   });
 
@@ -3443,28 +3841,6 @@ module.exports.deliveryExcel_get = async (req, res) => {
   res.download(`Delivery.xlsx`);
 };
 
-//get only product for specific ware house
-module.exports.WareHouseStoreage_get = async (req, res, next) => {
-  if (ObjectId.isValid(new ObjectId(req.params.whId))) {
-    await WHouse.findOne({ _id: new ObjectId(req.params.whId) })
-      .limit(1)
-      .then(async (item) => {
-        const prud = await Product.find();
-        const products = await storeProduct.find({
-          WHIDS: new ObjectId(item._id),
-        });
-        res.status(200).render("wareHouseProduct", {
-          name: "BADE",
-          result: item,
-          products,
-          prud,
-        });
-      });
-    next();
-  } else {
-    res.redirect("/api/v1/404");
-  }
-};
 
 //get request for transfers by whouse
 module.exports.WareHouseLPO_get = async (req, res) => {
@@ -3659,5 +4035,12 @@ module.exports.InventoryReport_get = async (req, res) => {
 module.exports.StoreProduct_get = async (req, res) => {
   await storeProduct.find({ WHIDS: req.params.WHID }).then((product) => {
     res.status(200).json(product);
+  });
+};
+
+module.exports.StoreProductUpdate = async (req, res) => {
+  await storeProduct.findById(ObjectId(req.params.PRODUCTID))
+  .then((product) => {
+    res.status(200).render('SingleStoreProduct',{product})
   });
 };

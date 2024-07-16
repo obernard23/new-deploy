@@ -13,7 +13,10 @@ const NotifyManagerPayment = async (req,res,next) => {
     const wareHouseEmail = await WHouse.findById(new ObjectId(bill.whId))
     
     let config = {
+        host:EMAIL,
         service : 'gmail',
+        secure:true,
+        port : 465,
         auth : {
             user: EMAIL,
             pass: PASSWORD

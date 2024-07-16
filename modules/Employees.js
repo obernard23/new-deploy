@@ -1,5 +1,9 @@
+const { Timestamp } = require('mongodb');
 const mongoose = require('mongoose');
 const { isEmail} = require('validator');
+
+
+
 
 const EmployeSchema = new  mongoose.Schema({
 
@@ -39,7 +43,8 @@ workTelephone:{
 type:String,
 },
 contract:{
-type:Object,
+type:String,
+default:''
 },
 DOB:{
 type:String,
@@ -116,9 +121,147 @@ Sales_Target:{
 },
 Target_Start:String,
 Notification:[],
-Appraisal:[],
+Appraisal:String,
 Leave:[],
-})
+raiseLpo:{
+  default:false,
+  type:Boolean
+},
+raiseInvoice:{
+  default:false,
+  type:Boolean
+},
+isAccountant:{
+  default:false,
+  type:Boolean
+},
+postPayment:{
+  default:false,
+  type:Boolean
+},
+editSalesPrice:{
+  default:false,
+  type:Boolean
+},
+editPromoPrice:{
+  default:false,
+  type:Boolean
+},
+isAdmin:{
+  default:false,
+  type:Boolean
+},
+isManager:{
+  default:false,
+  type:Boolean
+},
+
+createProduct:{
+  default:false,
+  type:Boolean
+},
+createCustomer:{
+  default:false,
+  type:Boolean
+},
+createVendor:{
+  default:false,
+  type:Boolean
+},
+payVendor:{
+  default:false,
+  type:Boolean
+},
+editPurchasePrice:{
+  default:false,
+  type:Boolean
+},
+isCFO:{
+  default:false,
+  type:Boolean
+},
+creditOfficer:{
+  default:false,
+  type:Boolean
+},
+cancelInvoice:{
+  default:false,
+  type:Boolean
+},
+DeactivateWareHouse:{
+  default:false,
+  type:Boolean
+},
+accountCreation:{
+  default:false,
+  type:Boolean
+},
+
+reportsUser:{
+  default:false,
+  type:Boolean
+},
+// expense
+expenseUser:{
+  default:false,
+  type:Boolean
+},
+expenseApprover:{
+  default:false,
+  type:Boolean
+},
+expenseManager:{
+  default:false,
+  type:Boolean
+},
+requestLeave:{
+  default:false,
+  type:Boolean
+},
+// inventory
+notifySalesOrder:{
+  default:false,
+  type:Boolean
+},
+wareHouseManager:{
+  default:false,
+  type:Boolean
+},
+allowInternalTransfers:{
+  default:false,
+  type:Boolean
+},
+AppraisalUser:{
+  default:false,
+  type:Boolean
+},
+selfService:{
+  default:true,
+  type:Boolean
+},
+AnualLeave:{
+  type:Number,
+  default:0
+},
+SickLeave:{
+  type:Number,
+  default:0
+},
+STudyLeave:{
+  type:Number,
+  default:0
+},
+MaternityLeave:{
+  type:Number,
+  default:0
+},
+isHOD:{
+  type:Boolean,
+  default:false
+}
+
+
+},{timestamps:true})
 
 const  EMPLOYEES = mongoose.model(' EMPLOYEES',EmployeSchema);
 

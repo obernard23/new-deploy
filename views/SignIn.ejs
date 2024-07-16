@@ -1,19 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <%-include('./partials/head.ejs')%>
   <body  >
-    <section   class="relative">
+    <section   class="relative animate__animated animate__fadeInDown" style="background-image: url('/images/bg.jpg');background-attachment: fixed; background-repeat: no-repeat; background-size: cover;">
       <div class="container-fluid vh-100">
         <div class="row d-flex justify-content-center  align-items-center h-100">
-          <div class="col-md-9 col-lg-6 col-xl-5">
-            <img
+          
+            <div class="col-md-9 col-lg-6 col-xl-5">
+              <img
+              width="400px"
+              height="400px"
               src="/BADES.jpg"
-              class="img-fluid"
-              alt="logo"
-            />
-          </div>
-          <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1  justify-content-center  p-3 align-items-center d-flex col">
+                class="img-fluid rounded-top animate__animated animate__fadeInDown"
+                alt="logo"
+              />
+            </div>
+          
+         
+          <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1  justify-content-center  p-3 align-items-center d-flex col animate__animated animate__fadeInDown">
+            <% if (!user) { %>
             <form id="form">
+              <p class="animate__animated animate__fadeInDown text-center text-dark-emphasis text-3xl"><b>Sign-In </b>Business Automated Dynamic Enterprise</p>
               <!-- Email input -->
               <div class="form-outline mb-4">
                 <input
@@ -46,11 +58,18 @@
               <div class="text-center text-lg-start mt-4 pt-2">
                 <button
                   type="submit"
-                  class="btn btn-dark btn-lg shadow"
+                  class="btn btn-success btn-lg shadow"
                   style="padding-left: 2.5rem; padding-right: 2.5rem"
                 >
                   Login
                 </button>
+                <% }else{%>
+                  <div class="d-flex flex-column justify-content-between align-content-center">
+                    <p class="animate__animated animate__fadeInDown text-center text-dark-emphasis text-3xl"><span style='font-size:40px;'>&#128075;</span> <b><%= user.firstName.toUpperCase() %>, How are you Enjoying </b>Business Automated Dynamic Enterprise ?</p>
+                    <a href="/api/v1/Dashboard/<%= user._id %>" class="btn bg-warning">BACK HOME</a><br>
+                    <a href="/api/v1/logout/<%= user._id %>" class="btn bg-danger">LOGOUT</a>
+                  </div>
+                <%} %>
               </div>
             </form>
           </div>
@@ -60,6 +79,27 @@
     </section>
   </body>
   <script>
+
+
+const swill = async ()=>{
+        const Toast = Swal.mixin({
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        }
+      });
+      Toast.fire({
+        icon: "success",
+        title: "Signed in successfully"
+      });
+    }
+
+
     const emailError = document.querySelector(".email.error");
     const passwordError = document.querySelector(".password.error");
     const form = document.querySelector("#form");
@@ -81,8 +121,8 @@
           headers: { "Content-Type": "application/json" },
         });
         const data = await res.json();
-        if (data.errorMessage) {
-          emailError.textContent = data.errorMessage;
+        if (data.serverError) {
+          emailError.textContent = data.serverError;
         }
 
         if (data.errorPassword) {
@@ -95,8 +135,11 @@
 
         //check for registered customer
         if (data.Newcustomer) {
-          // form.reset()
-          location.assign(`/api/v1/Dashboard/${data.Newcustomer}`);
+          form.reset()
+          swill()
+          setTimeout(()=>{
+            location.assign(`/api/v1/Dashboard/${data.Newcustomer}`);
+          },3000)
         }
       } catch (e) {
         emailError.textContent = `${e}`;

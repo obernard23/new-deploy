@@ -4,23 +4,35 @@ const {PASSWORD,EMAIL,ERPSmtpName,url} = require('../.env');
 const {WHouse} = require('../modules/warehouse');
 const Employee = require('../modules/Employees');
 const Expenses = require('../modules/Expense')
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
 const NotifyCFO = async (data) => {
     let date = new Date()
 //    const WHous =  await WHouse.findById(data.WHID)//find bill 
-   await Employee.find({jobTittle:'CFO'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { isCFO:true}]})
     .then((CFO) => {
         CFO.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
                 },
                 tls : { rejectUnauthorized: false }//always add this to stop error in console   
             }
+
+            usernotification({ 
+                Title:`Expense to Review`,
+                url:`/api/v1/EXP/${data._id}`,
+                userId:person._id
+            })
         
             let transporter = nodemailer.createTransport(config);
         

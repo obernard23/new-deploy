@@ -6,7 +6,8 @@ const product = require('../modules/Product');
 const authController = require('../controllers/authControllers')
 const DepreciationController = require('../controllers/DepreciationShedule')
 const {requireAuth,checkUser} = require('../middleware/authmidddleware')
-const {PostInvoice,ValidStockTransfer,adminWareHouseSetUp,AccountantViewAccess,removeStock} = require('../warehouseValidation/warehouseValidate')
+const {deductLeaveDays} = require('../middleware/TimeoffMiddleware')
+const {PostInvoice,ValidStockTransfer,adminWareHouseSetUp,createVendor,AccountantViewAccess,removeStock,RefundCustomer,updateStockCount} = require('../warehouseValidation/warehouseValidate')
 const {checkResetUser,checkLoginUser} = require('../middleware/checkUser')
 const {checkUserRole,ManagerAccess} = require("../middleware/userRole");
 const bills = require('../modules/Bills');
@@ -37,13 +38,23 @@ router.get('/signup',requireAuth,authController.signup_get);
 router.get('/SignIn',authController.signin_get);
 router.get('/Cart',authController.cart_get);
 router.get('/index',authController.index_get);//check this out
-router.get('/About',authController.About_get);
+router.get('/contact_form',DepreciationController.contact_form_get);
+router.post('/contact_form_submit',DepreciationController.contact_form_post)
+router.get('/Livechat/Link/:chatId',DepreciationController.Livechat_get)//get single link for support ticket from mail
+router.get('/livechat/updates/:chatId',DepreciationController.chatUpdate_get)//for update on dom
+router.put('/chat/:chatId',DepreciationController.chat)//to add chat to livechat
+router.get('/Helpdesk',requireAuth,DepreciationController.TicketView_get)///internal user view 
+router.get('/Ticket',requireAuth,DepreciationController.SingleTicket)//get single ticket
+router.patch('/TicketId',requireAuth,DepreciationController.TicketId_patch)//edit single ticket
+router.get('/Support',requireAuth, DepreciationController.SupportDepartment)
+router.get('/Marketing',requireAuth,DepreciationController.Marketing_get);//productivity
+router.post('/Productivity/sendMarketing',requireAuth,DepreciationController.Marketing_post);
 router.get('/Notification/:WHID',requireAuth,authController.Notification_get);
-router.get('/register-NEW',requireAuth,authController.Register_get);//company name
+router.get('/Notifications/:employeeId',requireAuth,DepreciationController.UserNotification_get);
 router.get('/Reset',authController.Reset_get);
 router.get('/logout/:USERID',requireAuth,authController.logout_get);
 router.get('/employee',requireAuth,authController.OnboardEmployee_get)
-router.get('/Appraisal/:id',requireAuth,authController.Appraisal_get)//for employee to form view
+router.get('/Appraisal/:id',requireAuth,authController.Appraisal_get)//GET SINGLE EMPLOYEE FOR APPRAISAL
 router.post('/Appraiasl/Employee/Apraisal',authController.Appraisal_post)
 router.get('/Appraisals/Management/:id',authController.AppraisalsManagement_get)//for top management view    
 
@@ -62,7 +73,6 @@ router.get('/employee/:employeeId',requireAuth,async(req,res)=>{//get json for a
 //for erp pls cut out when done 
 
 router.post('/Product/Create-new',requireAuth,authController.ProductCreate_post);
-router.post('/Sales/Register-Vendor',requireAuth,authController.VendorCreate_post);
 router.get(`/product/:ACDcode/bill/:WHID`,requireAuth,authController.productFind_get);//get store product id with json format for quotation purposes
 router.get('/product/:ACDcode/bill',requireAuth,authController.productFindNodIde_get)//get product  with json format for quotation purposes
 router.get('/StoreProductFindNodIde/:ACDcode/:to/:from',requireAuth,authController.StoreProductFindNodIde_get)//FOR WAREHOUSE PRODUCT TRANSFER 
@@ -70,9 +80,10 @@ router.get('/Products',requireAuth,authController.Product_get);
 router.patch('/:id/BuyingPrice_change',requireAuth,authController.BuyingPrice_change,NotifyCFOPriceChange);//buying price change
 router.patch('/Products/:id/edit',requireAuth,authController.Product_patch);
 router.patch('/Products/:id/return',requireAuth,authController.ProductReturn_patch,NotifyWhTovir)//return product to virtual and logs message 
-router.get('/Product/:id/:name',requireAuth,authController.SingleProduct_get)
-router.get('/Product/:ADccode/',requireAuth,authController.SingleProductAdc_get)
+router.get('/Product/:id',requireAuth,authController.SingleProduct_get)
+router.get('/Product/search/:referenceNo',requireAuth,authController.SingleProductAdc_get) //for search
 router.get('/Clone/Product/:PRODUCTID',requireAuth,authController.SingleProductClone)
+router.get('/StoreProduct/:PRODUCTID/edit',requireAuth,authController.StoreProductUpdate)
 
 router.get('/Ecommerce/Customers',requireAuth,authController.Customer_get);
 router.post('/Sales/Register-customer',requireAuth,authController.CustomerRegister_post)
@@ -81,11 +92,10 @@ router.get(`/customer/:id/edit`,requireAuth,authController.customer_get);
 router.patch(`/customer/update/:id`,requireAuth,authController.customerEdit_patch)
 
 router.get('/VIRTUAL/Vendors/:ADMINID',requireAuth,adminWareHouseSetUp,authController.Vendors_get);
-router.get('/Sales/Register-Vendor',requireAuth,authController.VendorCreate_get);
+router.post('/Sales/Register-Vendor/:ADMINID',requireAuth,createVendor,authController.VendorCreate_post);
 
 //for payment 
 router.get('/Sales/Payment/Home/:id',requireAuth,AccountantViewAccess,authController.paymentLanging_get)
-router.get('/Sales/Payment/:id',requireAuth,AccountantViewAccess,authController.Payment_get);
 router.get('/Register/bill/:id/:billId',requireAuth,authController.RegisterPayment_get)//acountatnt is and bill id
 router.patch('/bill/register/:id',requireAuth,authController.RegisterPayment_patch,NotifyManagerPayment)//register bill 
 router.get('/Pay_Vendor/:id',requireAuth,AccountantViewAccess,authController.VendorPayment_get)
@@ -111,10 +121,22 @@ router.post(`/wareHouseToTransfer/toRecive`,requireAuth,authController.WareHouse
 router.post('/wareHouse/Bill',requireAuth,PostInvoice,authController.WareHouseBill_post,removeStock,NotifyAccountant);//to post bill
 router.get(`/warehouse/:id/Bills`,requireAuth,authController.WareHouseBill_get);//GET BILL BY WAREHOUSE ID
 router.get(`/bill/:id`,requireAuth,authController.WareHouseSingleBill_get);//get single bill
-router.patch(`/bill/:id/approved`,requireAuth,authController.approveBill_patch);//to approve bills for manager to store keeper
+router.patch(`/bill/:id/approved`,requireAuth,authController.approveBill_patch);//to approve bills for manager to cfo
 router.get('/warehouse/Product/:whId',requireAuth,authController.WareHouseStoreage_get);//get products for specific ware house
 router.patch('/warehouse/Product/:whId',requireAuth,authController.WareHouseStoreage_patch);
-
+router.get('/Sub/:ADMINID/WareHouse/Location',requireAuth,adminWareHouseSetUp,DepreciationController.SubLocation_get)//locaton page get
+router.post('/Location/create',requireAuth,DepreciationController.LocationCreate)//post api or location
+router.post('/KPI/create',requireAuth,DepreciationController.KPICreate)//post api or KPI
+router.get('/:id/Appraisal/',requireAuth,authController.SingleAppraisal_get)//get single appraisal
+router.patch('/:id/Appraisal/',requireAuth,authController.SingleAppraisal_patch)//edit appraisal
+router.get('/workContracts/',requireAuth,authController.WorkContract_get)//hr stuff
+router.post('/workContracts/',requireAuth,authController.workContract_post)
+router.get('/TimeOFF/:userId',requireAuth,authController.TimeOFF_get)//hr stuff
+router.get('/TimeOFF',requireAuth,authController.SingleTimeOff)//get single time off
+router.post('/leaveRequests',requireAuth,authController.leaveRequests_post)
+router.patch('/leaveRequest',requireAuth,authController.leaveRequests_patch,deductLeaveDays)//add payroll here
+router.get('/Calendar',requireAuth,DepreciationController.Calendar_get)//for event 
+router.post('/New/Event/',requireAuth,DepreciationController.EventCreate)//create events
 
 // Setup Storage
 const storage = multer.diskStorage({
@@ -161,8 +183,7 @@ router.post("/uploadbulk",requireAuth,upload.single("data"), (req, res) => {
             WholesalePromo: 0,
             MarketPromo: 0,
             Vendor: '65f65fa961130be9580e869b',
-            vendor_Price:0,
-            image:products.image,
+            vendor_Price:0
           } )
         });
 
@@ -181,7 +202,7 @@ router.get('/SetUp/:WHID/:ADMINID',requireAuth,adminWareHouseSetUp,authControlle
 
 // delivery routes
 router.get('/delivery/:deliveryId',requireAuth,authController.delivery_get);//sends json response for single bills
-router.patch('/delivery/:deliveryId',requireAuth,authController.delivery_patch);//update delivery status of bill
+router.patch('/delivery/:deliveryId/:id',requireAuth,authController.delivery_patch);//update delivery status of bill
 // GENERATE PDF FOR BILL
 router.get('/invoice/:billId', requireAuth,async (req, res, next)=>{
     const bill = await bills.findById(new ObjectId(req.params.billId)).limit(1).lean()
@@ -217,7 +238,7 @@ router.get(`/users/:userId/:opInput`,requireAuth,authController.Signature_get);
 
 
 // send mail to  customer   account
-router.get(`/sendmail/:id`,requireAuth,authController.sendMail,sendQuot);
+router.get(`/sendmail/:id/:ActiveUserName`,requireAuth,authController.sendMail,sendQuot);
 
 
 router.get("/Dashboard/:userid",requireAuth, authController.Dashboard_get);
@@ -246,11 +267,9 @@ router.get('/VAT/Reprot',requireAuth,DepreciationController.VAT_REPORT)
 //getting work book to exce; for All bills
 router.get('/bills/excel',requireAuth,authController.BillsWorkBook_get)
 router.get('/ExcelProduct',requireAuth,authController.ExcelProduct_get)
-//query global search parameters
-// router.get('/search/:query',authController.query_get)
 
 //warehouse expense
-router.get('/Expense/:WHID',requireAuth,authController.expense_get)
+// router.get('/Expense/:WHID',requireAuth,authController.expense_get)
 router.post('/Expense/:id',requireAuth,authController.expense_post)//id is user id
 
 //SCRAP API
@@ -259,7 +278,9 @@ router.post('/Scrap/:WHMANAGER',requireAuth,ManagerAccess,authController.Scrap_p
 
 router.get('/Staff/:WHID',requireAuth,authController.staff_get)//get staff by the location 
 router.get('/Replenish/:WHID/storeproduct',requireAuth,authController.replenish_storeproduct)
-router.get('/warehouse/purchase/:WHID',requireAuth,authController.wareHouse_Purchase)
+router.get('/warehouse/purchase/:WHID',requireAuth,authController.wareHouse_BeamCard)//for stock count
+router.get('/stockCard/:id',requireAuth,DepreciationController.Singlecard_get)//get single stock card entery
+router.post('/updateStockCount',requireAuth,updateStockCount,DepreciationController.updateStockCount)
 router.get('/Returns/:WHID',requireAuth,authController.WareHouseReturns_get)
 
 
@@ -268,13 +289,12 @@ router.get('/VIRTUAL/:ADMINID',requireAuth,authController.virtual_get)
 router.get('/VIRTUAL/SCRAP/:ADMINID',requireAuth,adminWareHouseSetUp,authController.virtual_Scrap)
 router.get('/scrap/single/:ID',requireAuth,authController.SingleScrap_get)
 router.patch('/scrap/:ID',requireAuth,authController.SingleScrap_patch,ScrapResponse)
-router.get('/register/new/product',requireAuth,authController.CreateProduct_get);//create product
+// router.get('/register/new/product',requireAuth,authController.CreateProduct_get);//create product
 router.get('/Delete/:ProductId',requireAuth,authController.Product_delete);
 router.get('/VIRTUAL/Purchase/:ADMINID',requireAuth,authController.PurchaseLanding_get)
 //purchse routers
-router.get('/purchase/:ADMINID',requireAuth,authController.PurchaseRequestForm_get)
+router.get('/Virtual/Purchase/Order/:ADMINID',requireAuth,authController.PurchaseRequestForm_get)//for accountant and lpo raiser
 router.get('/vendor/:id',requireAuth,authController.vendorFind_get)// kept at mind cant find url
-router.get('/Virtual/Purchase/Order/:ADMINID/',requireAuth,authController.PurchaseOrder_get)
 router.get(`/Vendorproduct/:vendorID`,requireAuth,authController.productsJson_get)//json to get product by vendorID
 router.get("/Virtual/Purchase/Request/:ADMINID",requireAuth,authController.PurchaseRequest_get)
 router.post('/Virtual/Purchase/Order/:ADMINID',requireAuth,PostInvoice,authController.PurchaseOrder_post)
@@ -299,26 +319,27 @@ router.get('/api/product/bill/:WHID',requireAuth, authController.StoreProduct_ge
 // SET UP COMPANY details
 
 
-// payment reversal routs
-router.patch('/payment/revoke/:paymentId',requireAuth, authController.paymentRevoke_patch)
 
 router.get('/Company/Register/:ADMINID',requireAuth,adminWareHouseSetUp,authController.companyRegister_get)
 router.post('/company/register/:ADMINID',requireAuth,adminWareHouseSetUp,authController.companyRegister_post,WelcomeMessageHandler);
 // expense routes
 router.get('/CFO/EXPENSE/:id',requireAuth,AccountantViewAccess,authController.CFexpense_get)
 router.patch('/Expense/edit/:EXPID/:CFOID',requireAuth,authController.SingleExpense_patch)
-router.get('/Vendor/Bills/:id',requireAuth,AccountantViewAccess,authController.CFOVendorBill_get)
 router.get('/CFO/Returns/:id',requireAuth,AccountantViewAccess,authController.CFOReturns_get)
 router.get('/:RETURNID/Returns',requireAuth,authController.SingleReturns_get)
-router.patch('/SingleReturn/:SingleReturnId',requireAuth,authController.SingleReturns_patch)
+router.patch('/SingleReturn/:SingleReturnId',requireAuth,authController.SingleReturns_patch,RefundCustomer)
 router.patch('/Vendor/Bill/:BillId',requireAuth,authController.CFOVendorBill_patch)// for lpo
 router.get('/EXP/:id',requireAuth,authController.SingleExpense_get)
 router.get('/AccountSettingLanding/:id',requireAuth,AccountantViewAccess,authController.AccountSettingLanding_get)
+router.get('/:id/:name/:Account',requireAuth,AccountantViewAccess,authController.SingleAccount_get)
 router.post('/Bank/Account/create',requireAuth,authController.BankAccount_post)
 router.patch('/Bank/:Account/BalanceTransfer',requireAuth,authController.BankAccount_patch)
 
 // accountant routes
-router.get('/Credit/customers/:id',requireAuth,AccountantViewAccess,authController.CreditCustomers_get)
+router.get('/Credit/customers/:id/payment',requireAuth,AccountantViewAccess,authController.CreditCustomers_get)//register payment
+router.get('/payments/:id',requireAuth,authController.singlePayment_get)//get single payment
+// payment reversal routs
+router.patch('/payment/revoke/:paymentId',requireAuth, authController.paymentRevoke_patch)
 router.post('/CREDIT/log',requireAuth,authController.registerCustomerPayment_post)
 router.get('/Profit&lost/:id',requireAuth,authController.pnl_get)
 
@@ -326,6 +347,7 @@ router.get('/Profit&lost/:id',requireAuth,authController.pnl_get)
 router.post('/Category/create',requireAuth,authController.productCategory)
 router.post('/umo/create',requireAuth,authController.umo)
 router.post('/expense/Category/create',requireAuth,authController.ExpenseCategory)
+router.get('/expenseCategory/delete',requireAuth,authController.ExpenseCategory_delete)
 router.get('/Category/delete/:CATID',requireAuth,authController.deleteProductCategory)
 
 //for searching 
@@ -340,7 +362,9 @@ router.post('/createAsset',requireAuth,DepreciationController.asset_post_create)
 router.get('/SingleAsset/:AssetId/:name/:id',requireAuth,DepreciationController.SingleAsset)
 router.patch('/assets/:AssetId/edit',requireAuth,DepreciationController.Asset_Patch)
 router.get('/Birthday/messages',requireAuth,DepreciationController.BirthdayMessage)
-
+router.post('/newjobtitle',requireAuth,DepreciationController.jobtittle_post)//create job title
+router.post('/departmentforms',requireAuth,DepreciationController.Department_post)//create department
+router.get('/Departments',requireAuth,DepreciationController.getDepartments)//get all departments
 
 
 //404

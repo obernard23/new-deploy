@@ -7,16 +7,23 @@ const PurchaseOrders = require('../modules/purchaseOrder')
 var moment = require('moment'); 
 let date = new Date()
 var responseDate = moment(date).format("dddd, MMMM Do YYYY,");
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
 const NotifyInvoicerPODeclined = async (vendorBill,Requester) => {
   
-        person =  await Employee.findOne({jobTitle:'Invoicer'})
+        person =  await Employee.findOne({$and: [
+            { status: "active" },
+            { raiseLpo:true}]})
+       
    
    
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -25,6 +32,12 @@ const NotifyInvoicerPODeclined = async (vendorBill,Requester) => {
             }
         
             let transporter = nodemailer.createTransport(config);
+
+            usernotification({ 
+                Title:`LPO Request for ${vendorBill.billReferenceNo} has been declined by ${Requester}`,
+                url:`/api/v1/Purchase/bill/${vendorBill._id}`,
+                userId:person._id
+            })
         
             let MailGenerator = new Mailgen({
                 theme: "salted",

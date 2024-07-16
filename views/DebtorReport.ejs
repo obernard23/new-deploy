@@ -32,9 +32,9 @@ text-align: center;
 </head>
 
 <body class=""  onload="getData()">
-  <div class="wrapper ">
+  <div class=" wrapper ">
     <div class="sidebar" data-color="black" data-active-color="danger" style="overflow-y: hidden;">
-      <div class="logo">
+      <div class="dash logo">
         
         <a href="" class="simple-text logo-normal" >
           <a class="navbar-brand" href="/api/v1/Dashboard/<%=user._id%>" title="Apps">
@@ -47,7 +47,7 @@ text-align: center;
          
         </a>
       </div>
-      <div class="sidebar-wrapper">
+      <div class=" sidebar-wrapper">
         <ul class="nav">
           <li class="active-pro">
             <a href="/api/v1/report">
@@ -155,7 +155,7 @@ text-align: center;
     </div>
     <div class="main-panel  h-100">
       <!-- Navbar -->
-      <nav class="navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
+      <nav class="dash navbar navbar-expand-lg navbar-absolute fixed-top navbar-transparent">
         <div class="container-fluid">
           <div class="navbar-wrapper">
             <div class="navbar-toggle">
@@ -165,7 +165,7 @@ text-align: center;
                 <span class="navbar-toggler-bar bar3"></span>
               </button>
             </div>
-            <a class="navbar-brand" href="javascript:;">Deptors Report</a>
+            <a class=" navbar-brand" href="javascript:;">Deptors Report</a>
           </div>
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
             <form>
@@ -302,6 +302,24 @@ text-align: center;
     let Employee
     let wareHouse
     const getData = async ()=>{
+
+      //calculate debt days
+
+        const debtDays = (DebtDay) =>{
+        const date1 = new Date(`${DebtDay}`);
+        const date2 = new Date();
+
+        // Calculate the time difference in milliseconds
+        const differenceInTime = date2.getTime() - date1.getTime();
+
+        // Convert to days
+        const differenceInDays = Math.round(differenceInTime / (1000 * 3600 * 24));
+
+        return`${differenceInDays } days from (${DebtDay})`;
+      }
+
+
+
       document.getElementById('loading').style.display='block'
         const request = await fetch('/api/v1/Getfulldb',{
         method:'GET',
@@ -316,21 +334,21 @@ text-align: center;
        
    
             // get debt days functionality
-              function calculateDaysFromToday(date) {
-              const formatter = new Intl.DateTimeFormat('us-as')
+            //   function calculateDaysFromToday(date) {
+            //   const formatter = new Intl.DateTimeFormat('us-as')
               
-              const d = new Date()
-              var date1 = new Date(date);
-              today = `${d.getMonth() + 1}-${ d.getDate()}-${d.getFullYear()}`
-              var date2 = new Date(today); //mm/dd/yyyy
-              var diffDays = date2.getDate() - date1.getDate(); 
+            //   const d = new Date()
+            //   var date1 = new Date(date);
+            //   today = `${d.getMonth() + 1}-${ d.getDate()}-${d.getFullYear()}`
+            //   var date2 = new Date(today); //mm/dd/yyyy
+            //   var diffDays = date2.getDate() - date1.getDate(); 
               
-              f = new Intl.RelativeTimeFormat(undefined,{
-                style:"long",
-                numeric:"auto"
-              })
-              return f.format(-diffDays,'day')
-            }
+            //   f = new Intl.RelativeTimeFormat(undefined,{
+            //     style:"long",
+            //     numeric:"auto"
+            //   })
+            //   return f.format(-diffDays,'day')
+            // }
 
            const checkdebt = (debt)=>{
             f = new Intl.NumberFormat(undefined,{
@@ -380,7 +398,7 @@ text-align: center;
         let wareHouses = await wareHouse.filter((wareHouse) =>{return wareHouse._id.toString() === element.location.toString()})
             //excell data
             data.push({CUSTOMER_NAME:element.Username,CHANNEL:element.priceList,TELEPHONE:element.phone,LOCATION:wareHouses[0].WHName,SALES_PERSON:salesPersons[0].firstName,
-                        DEBT_DAYS: calculateDaysFromToday(element.lastPayDate),AMOUNT:element.Debt})
+                      DEBT_DAYS: debtDays(element.lastPayDate),AMOUNT:element.Debt})
 
         let tr = document.createElement('tr')
         let counter = document.createElement('td')
@@ -401,7 +419,7 @@ text-align: center;
         CustomerType.innerText = element.priceList
         location.innerText = wareHouses.map(wh =>{return wh.WHName})
         phone.innerText = element.phone
-        lastPayDate.innerText = calculateDaysFromToday(element.lastPayDate)
+        lastPayDate.innerText = debtDays(element.lastPayDate)
         salesPerson.innerText = salesPersons.map(person =>{return person.firstName})
         Debt.innerText =  checkdebt(element.Debt)
         // add style 
@@ -482,10 +500,10 @@ text-align: center;
         }
         },
         business: {
-        name: "DEMO COMPANY",
-        address: "DEMO COMPANY ADDRESS FCT.ABUJA ,",
-        email: "(+234) 09047542925, OPERATIONS.BADE@GMAIL.COM",
-        phone: "DEMO COMPANY ADDRESS FCT.ABUJA"
+        name: "ALL CHANNELS DISTRIBUTORS NIG LTD",
+        address: "CM/104 COMPLEX KARU NEW MARKET, KARU ABUJA ,",
+        email: "(+234) 081584911682, ALLCHANNELDISTRIBUTION@YAHOO.COM",
+        phone: "Group 3 Plaza, UK Bello Road, kasuwar gwari, Minna Niger State.",
         },
         contact: {
         label:``,

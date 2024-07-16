@@ -16,8 +16,10 @@ async function checkResetUser(req, res, next) {
 async function checkLoginUser(req,res,next){
   const Email = req.body.Email
  try {
-  const user = await Employe.findOne( {Email:Email});
-  if (user.status ==='active') {
+  const user = await Employe.findOne( {Email:Email}).limit(1);
+  if (!user) {
+    throw new Error("Not a registered Email");
+  }else if(user.status ==='active'){
     res.status(200)
     next();
   }
@@ -26,7 +28,7 @@ async function checkLoginUser(req,res,next){
     throw new Error("Sorry, this user does not have authorized access.");
    }
  } catch (error) {
-  res.status(500).json({errorMessage:error.message});
+  res.status(500).json({serverError:error.message});
  }
 }
 

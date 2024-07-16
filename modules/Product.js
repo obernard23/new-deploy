@@ -58,7 +58,7 @@ const ProductSchema = new mongoose.Schema(
     },
     Rolls:{
       type:Number,
-      default:0
+      default:1
     },
     VanPromo:{
       type:Number,

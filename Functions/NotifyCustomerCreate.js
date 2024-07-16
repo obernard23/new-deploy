@@ -3,6 +3,7 @@ const Mailgen = require('mailgen');
 const {PASSWORD,EMAIL,ERPSmtpName,url} = require('../.env');
 const customer = require('../modules/customers');
 const Employee = require('../modules/Employees');
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
@@ -10,11 +11,16 @@ const NotifyCustomerCreate = async (params) => {
     let date = new Date()
    const newCustomer =  await customer.findById(params._id)//find bill 
   const SalesPerson=  await Employee.findOne({_id:params.salesPerson})
-   await Employee.find({jobTittle:'MD'})
+   await Employee.find({$and: [
+    { status: "active" },
+    { isCFO:true}]})
     .then((MD) => {
         MD.forEach( person => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -23,6 +29,12 @@ const NotifyCustomerCreate = async (params) => {
             }
         
             let transporter = nodemailer.createTransport(config);
+
+            usernotification({ 
+                Title:`${newCustomer.Username} Customer Account to Review from ${SalesPerson.firstName}`,
+                url:`/api/v1/customer/${newCustomer._id}/edit`,
+                userId:person._id
+            })
         
             let MailGenerator = new Mailgen({
                 theme: "salted",
@@ -36,7 +48,7 @@ const NotifyCustomerCreate = async (params) => {
         
             let response = {
                 body: {
-                name : 'MD',
+                name : `${MD.firstName}`,
                 intro: `New Customer Account to Review from ${SalesPerson.firstName}`,
                 action: [
                     {

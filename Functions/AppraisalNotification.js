@@ -2,7 +2,8 @@ const nodemailer = require("nodemailer");
 const Mailgen = require('mailgen');
 const {PASSWORD,EMAIL,ERPSmtpName,url} = require('../.env');
 const Employee = require('../modules/Employees');
-const Appraisal = require('../modules/Appraisal')
+const Appraisal = require('../modules/Appraisal');
+const {usernotification} = require('../warehouseValidation/warehouseValidate.js');
 
 
 // this function sends mail to ware house manager 
@@ -12,13 +13,23 @@ const AppraisalNotify = async (data) => {
    await Employee.findById(data.Employe)
     .then((person) => {
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
                 },
                 tls : { rejectUnauthorized: false }//always add this to stop error in console   
             }
+
+            //push notifications to user
+            usernotification({ 
+                Title:`${data.kpi.length} KPI set on ${data.ref} `,
+                url:`/api/v1/${data._id}/Appraisal/`,
+                userId:person._id
+            })
         
             let transporter = nodemailer.createTransport(config);
         
@@ -42,23 +53,23 @@ const AppraisalNotify = async (data) => {
                     table: [
                         {
                             // Optionally, add a title to each table.
-                            title: `${data.kpi.length} KPI set on ${data.title} `,
+                            title: `${data.kpi.length} KPI set on ${data.ref} `,
                             data: data.kpi.map((kpi) =>{
                                 return {
                                     Perspective : kpi.Perspective,
                                     Objectives : kpi.Objectives,
-                                    Measures: kpi.Measures
+                                    Measures: kpi.weight
                                 }
                             })
                         },
                     ],
                     action: [
                         {
-                            instructions: `By clicking on the button bellow, you will Accept and start the appraisal process for the period specified`,
+                            instructions: `By clicking on the button bellow, you will Accept the set KPI for the period specified`,
                             button: {
                                 color: 'green',
                                 text: 'Accept Set KPI',
-                                link: `${url}/api/v1/Product/`
+                                link: `${url}/api/v1/${data._id}/Appraisal/`
                             }
                         }
                     ],
@@ -71,7 +82,7 @@ const AppraisalNotify = async (data) => {
             let message = {
                 from : EMAIL,
                 to : person.Email,//appraisee
-                subject: `${ERPSmtpName} Operations`,
+                subject: `Invite to ${data.ref} Appraisal`,
                 html: mail
             }
             

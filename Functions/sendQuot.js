@@ -23,10 +23,13 @@ const sendQuot = async (req,res,next) => {
             //get customer email address
             const date = new Date()
             const CustomerEmail = await customer.findOne({_id: result.customer})
-            result.ActivityLog.unshift({logMsg:`Delivery note sent to ${CustomerEmail.Username} on ${responseDate}`,status:`Delivey completed`})
+            result.ActivityLog.unshift({logMsg:`${req.params.ActiveUserName} sent delivery note sent to ${CustomerEmail.Username} on ${responseDate} `,status:`Delivey Note sent`})
             result.save()
             let config = {
+                host:EMAIL,
                 service : 'gmail',
+                secure:true,
+                port : 465,
                 auth : {
                     user: EMAIL,
                     pass: PASSWORD
@@ -62,10 +65,10 @@ const sendQuot = async (req,res,next) => {
                                     Product :order.item.Name,
                                     Qty:order.Qty,
                                     BatchNo:order.BatchId,
-                                    Vat:order.item.VAT,
+                                    Vat:order.item.VAT.$numberDecimal,
                                    "Price(₦)" : `${order.priceListPrice}`,
                                    'Promotion':order.promotionData ? order.promotionData : 0,
-                                    Scale:order.item.UMO,
+                                    Scale:order.scale,
                                     "Total(₦)": `${order.total}`,
                                 }
                             }),
@@ -92,7 +95,7 @@ const sendQuot = async (req,res,next) => {
                                     "price":`₦${result.shippingFee} (This fee is not Added to Grand total of this ${result.billStatus}})`
                                 },
                                 {
-                                    item: 'Sub Total',
+                                    item: 'Gross',
                                     "price": `₦${result.subTotal}`
                                 },
                                 {
@@ -100,8 +103,8 @@ const sendQuot = async (req,res,next) => {
                                     "price(₦)": result.discount
                                 },
                                 {
-                                    item: 'Grand Total',
-                                    "price(₦)": result.grandTotal
+                                    item: 'Net',
+                                    "price(₦)": `₦${result.grandTotal}`
                                 }
                             ],
                           
@@ -133,7 +136,8 @@ const sendQuot = async (req,res,next) => {
             }
             
             transporter.sendMail(message).then(() => {
-                res.status(200).json({ message: `${ CustomerEmail.Username} will recive this ${result.billStatus} in thier email`})
+
+                res.status(200).json({ message: `${result.billStatus} has been sent to ${ CustomerEmail.Email}.`})
             })
 
             });
